@@ -6,9 +6,9 @@ import './App.css'
 function App() {
   return (
     <div className="min-h-screen bg-white dark:bg-black text-gray-800 dark:text-gray-100 font-sans">
-      <nav className="sticky top-0 z-50 flex justify-between px-8 py-6 bg-white/70 dark:bg-black/70 backdrop-blur">
-        <h1 className="text-xl font-bold">Junaadh</h1>
-        <ul className="flex gap-6 text-sm">
+      <nav className="sticky top-0 z-50 flex justify-between items-center sm:px-5 md:px-8 py-6 bg-white/70 dark:bg-black/70 backdrop-blur">
+        <h1 className="sm:text-lg md:text-xl font-bold">Junaadh</h1>
+        <ul className="flex justify-center items-center gap-6 sm:text-xs md:text-sm">
           <li><a href="#projects" className="hover:underline">Projects</a></li>
           <li><a href="#skills" className="hover:underline">Skills</a></li>
           <li><a href="#contact" className="hover:underline">Contact</a></li>
