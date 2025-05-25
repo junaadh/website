@@ -1,13 +1,11 @@
-import React, { useEffect, useState } from "react";
-
 type RepoData = {
   name: string;
   username: string;
   description: string;
-  languages: [string];
+  languages: string[];
 };
 
-const repos: [RepoData] = [
+const repos: RepoData[] = [
   {
     name: "Akuru",
     username: "akuru",

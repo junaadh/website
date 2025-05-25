@@ -4,7 +4,7 @@ type ContactEntry = {
   url: string,
 };
 
-const contact_list: [ContactEntry] = [
+const contact_list: ContactEntry[] = [
   {
     icon: "/icons/github.svg",
     label: "Github",

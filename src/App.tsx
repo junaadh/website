@@ -1,4 +1,3 @@
-import React from 'react'
 import Project from './components/projects'
 import Skill from './components/skills'
 import Contact from './components/contact'
