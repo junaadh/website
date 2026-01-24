@@ -2,7 +2,7 @@ const skills = [
   "Rust",
   "Swift",
   "C",
-  "C++",
+  "Cpp",
   "Zig",
   "TypeScript",
   "JavaScript",
@@ -23,9 +23,9 @@ const Skill = () => {
   {skills.map((skill) => (
   <div key={skill} className="px-5 h-12 flex justify-center items-center py-1 bg-white dark:bg-black hover:bg-gray-200 dark:hover:bg-gray-800 text-sm rounded-2xl border border-gray-300 dark:border-gray-800">
     <img
-      src={`/languages/${skill.toLowerCase()}.svg`}
+      src={`/languages/${skill === "SwiftUI" ? "swift" : skill.toLowerCase()}.svg`}
       alt={`${skill} logo`}
-      className="w-4 h-4 dark:invert mr-2"
+      className="w-4 h-4 mr-2 dark:invert"
       onError={(e) => (e.currentTarget.style.display = "none")}
     />
     <span>{skill}</span>

@@ -6,10 +6,11 @@ import './App.css'
 
 function App() {
   return (
-    <div className="min-h-screen bg-white dark:bg-black text-gray-800 dark:text-gray-100 font-sans">
-      <nav className="sticky top-0 z-50 flex justify-between items-center sm:px-5 md:px-8 py-8 bg-white/70 dark:bg-black/70 backdrop-blur">
-        <h1 className="text-2xl sm:text-3xl font-bold">Junaadh</h1>
-        <ul className="flex justify-center items-center gap-6 text-sm sm:text-base">
+    <div className="min-h-screen bg-white dark:bg-black text-gray-800 dark:text-gray-100 font-sans pb-0">
+      {/* Frosted glass navigation */}
+      <nav className="fixed bottom-4 left-4 right-4 sm:sticky sm:top-4 sm:left-auto sm:right-auto sm:mx-auto sm:max-w-4xl z-50 rounded-2xl sm:rounded-3xl flex justify-between items-center py-3 px-4 sm:py-4 sm:px-6 bg-white/80 dark:bg-black/80 backdrop-blur-xl shadow-xl border border-white/30 dark:border-white/20 transition-all duration-300">
+        <h1 className="text-xl sm:text-2xl font-bold">Junaadh</h1>
+        <ul className="flex items-center gap-3 sm:gap-6 text-xs sm:text-sm">
           <li><a href="#experience" className="hover:underline">Experience</a></li>
           <li><a href="#projects" className="hover:underline">Projects</a></li>
           <li><a href="#skills" className="hover:underline">Skills</a></li>
@@ -18,7 +19,7 @@ function App() {
       </nav>
 
       <section className="text-center py-16 px-4">
-          <img src="/memoji.png" alt="Memoji" className="z-1 w-48 h-48 mx-auto mb-4 rounded-full" />
+        <img src="/memoji.png" alt="Memoji" className="z-1 w-48 h-48 mx-auto mb-4 rounded-full" />
         <h2 className="text-2xl font-semibold mb-2">About Me</h2>
         <p className="max-w-xl mx-auto text-sm text-gray-600 dark:text-gray-400">
           I'm <strong>Junaadh</strong> — a software engineer focused on Cybersecurity, systems programming,
@@ -32,6 +33,11 @@ function App() {
       <Project />
       <Skill />
       <Contact />
+
+      {/* Footer */}
+      <footer className="text-center py-6 px-4 text-xs text-gray-500 dark:text-gray-400">
+        © 2026 Junaadh. All rights reserved.
+      </footer>
     </div>
   )
 }
