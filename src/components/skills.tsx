@@ -1,4 +1,18 @@
-const skills = ["Rust", "C", "Zig", "Cybersecurity", "Embedded", "Python", "Tailwind", "React", "Typescript"];
+const skills = [
+  "Rust",
+  "Swift",
+  "C",
+  "C++",
+  "Zig",
+  "TypeScript",
+  "JavaScript",
+  "SwiftUI",
+  "React",
+  "Next.js",
+  "AWS",
+  "Git",
+  "Cloudflare"
+];
 // https://devicon.dev/?utm_source=chatgpt.com 
 
 const Skill = () => {

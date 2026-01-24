@@ -7,22 +7,22 @@ type RepoData = {
 
 const repos: RepoData[] = [
   {
-    name: "Akuru",
-    username: "akuru",
-    description: "A concept programming language based on rust",
+    name: "OxideX",
+    username: "oxidex",
+    description: "A high-performance dynamic object runtime in rust inspired by Objective-C",
     languages: [ "rust" ],
+  },
+  {
+    name: "PresenceKit",
+    username: "PresenceKit",
+    description: "Discord RPC for macOS",
+    languages: [ "swift" ],
   },
   {
     name: "Discord Rpc Extension",
     username: "rise_code",
     description: "An extension for Helix Editor using Discord RPC",
     languages: [ "rust" ],
-  },
-  {
-    name: "Zohi Game Engine",
-    username: "zohi",
-    description: "A learning game engine",
-    languages: [ "c", "shell", "batch file", "c++" ]
   },
   {
     name: "Web Server",
