@@ -19,6 +19,13 @@ const experiences: ExperienceData[] = [
       "Developed and maintained applications integrating Swift and Flutter components",
     ],
   },
+  {
+    company: "Dhiraagu",
+    location: "Addu City, Maldives",
+    position: "Customer Support Specialist",
+    period: "April 2022 - December 2022",
+    responsibilities: [],
+  },
 ];
 
 const Experience = () => {

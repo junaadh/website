@@ -42,9 +42,34 @@ Customer Support Specialist
 
 ## Skills
 
-- Languages: Rust, Swift, C/C++, TypeScript, JavaScript, Zig
-- Frameworks & Libraries: SwiftUI, SwiftData, UIKit, React Native, Next.js
-- Tools & Platforms: AWS, Git, Xcode, VS Code, Cloudflare
+- **Backend & Web Development**:
+  Rust (Axum, Actix), TypeScript/JavaScript (Vite + React, Node.js) — building high-performance, scalable, and secure APIs and web applications.
+
+- **Mobile & Desktop Development**:
+  Swift, SwiftUI, SwiftData, UIKit, React Native — developing iOS and macOS applications with cloud integration, responsive UIs, and optimized performance.
+
+- **Systems & Low-Level Programming**:
+  Rust, C/C++, Zig — writing efficient, memory-safe system software, CLI tools, and performance-critical modules.
+
+- **DevOps & Deployment**:
+  Docker, Docker Compose, Docker Swarm, Colima, CI/CD pipelines, Caddy, Nginx, AWS, Cloudflare — containerizing applications, orchestrating services, automating deployments, and configuring secure infrastructure.
+
+- **Monitoring & Observability**:
+  Prometheus, Grafana, Loki — implementing system monitoring, visualizing metrics, and aggregating logs for production environments.
+
+- **Server & Linux Administration**:
+  Linux, VPS management, shell scripting — deploying and maintaining applications on Linux servers, configuring VPS environments, and managing server operations.
+
+## Projects
+
+**Reqstly** - [github.com/junaadh/reqstly](https://github.com/junaadh/reqstly.git)  
+[reqstly.com](https://reqstly.com)
+
+- Built a self-hosted request management system using Rust and TypeScript
+- Designed backend with Axum, PostgreSQL, and integrated CI/CD pipelines for automated deployment
+- Implemented Dockerized infrastructure with Docker Compose for local development and Docker Swarm for scalable deployment
+- Monitored system metrics using Prometheus and Grafana, with log aggregation via Loki
+- Configured secure web serving using Caddy and Nginx
 
 # Languages
 - English

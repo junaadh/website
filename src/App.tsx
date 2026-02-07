@@ -22,10 +22,7 @@ function App() {
         <img src="/memoji.png" alt="Memoji" className="z-1 w-48 h-48 mx-auto mb-4 rounded-full" />
         <h2 className="text-2xl font-semibold mb-2">About Me</h2>
         <p className="max-w-xl mx-auto text-sm text-gray-600 dark:text-gray-400">
-          I'm <strong>Junaadh</strong> — a software engineer focused on Cybersecurity, systems programming,
-          and embedded programming. I enjoy building tools close to hardware: from assembly programs to interpreters,
-          compilers, and analyzers. With experience building low-level infrastructure and user-facing applications
-          across iOS, macOS, and web, I work with Rust, Swift, C/C++, and JavaScript frameworks.
+          Software engineer with experience in systems and application development. Skilled in Rust, Swift, C/C++, and JavaScript frameworks, with experience building low-level infrastructure and user-facing applications across iOS, macOS, and web.
         </p>
       </section>
 

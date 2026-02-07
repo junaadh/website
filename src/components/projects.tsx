@@ -7,6 +7,12 @@ type RepoData = {
 
 const repos: RepoData[] = [
   {
+    name: "Reqstly",
+    username: "reqstly",
+    description: "A self-hosted request management system built with Rust and TypeScript",
+    languages: [ "rust", "typescript" ],
+  },
+  {
     name: "OxideX",
     username: "oxidex",
     description: "A high-performance dynamic object runtime in rust inspired by Objective-C",
@@ -40,14 +46,14 @@ const Project = () => {
       <h2 className="text-2xl font-semibold mb-10 text-center tracking-tight">
         Projects
       </h2>
-      <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+      <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto justify-items-center">
         {repos.map((repo) => (
           <a
             key={repo.name}
             href={`https://github.com/${username}/${repo.username}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="group block rounded-lg border bg-white dark:bg-black p-5 transition  border-gray-300 dark:border-gray-800 hover:border-red-300 dark:hover:border-red-600"
+            className="group block rounded-lg border bg-white dark:bg-black p-5 transition  border-gray-300 dark:border-gray-800 hover:border-red-300 dark:hover:border-red-600 w-full"
           >
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
               {repo.name}
