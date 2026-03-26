@@ -1,32 +1,34 @@
 type SkillCategory = {
   category: string;
-  skills: string[];
+  details: string;
 };
 
 const skillCategories: SkillCategory[] = [
   {
     category: "Backend & Web Development",
-    skills: ["Rust", "TypeScript", "JavaScript", "React", "Next.js", "Node.js", "Axum", "Actix"],
+    details: "Rust (Axum, Actix), TypeScript/JavaScript (Vite + React, Node.js) - building high-performance, scalable, and secure APIs and web applications.",
   },
   {
     category: "Mobile & Desktop Development",
-    skills: ["Swift", "SwiftUI", "SwiftData", "UIKit", "React Native"],
+    details: "Swift, SwiftUI, SwiftData, UIKit, React Native, Svelte - developing iOS and macOS applications with cloud integration, responsive UIs, and optimized performance.",
   },
   {
     category: "Systems & Low-Level Programming",
-    skills: ["Rust", "C", "Cpp", "Zig"],
+    details: "Rust, C/C++, Zig - writing efficient, memory-safe system software, CLI tools, and performance-critical modules.",
   },
   {
     category: "DevOps & Deployment",
-    skills: ["Docker", "AWS", "Cloudflare", "Nginx", "Git"],
+    details: "Docker, Docker Compose, Docker Swarm, Colima, CI/CD pipelines, Caddy, Nginx, AWS, Cloudflare - containerizing applications, orchestrating services, automating deployments, and configuring secure infrastructure.",
   },
   {
     category: "Monitoring & Observability",
-    skills: ["Prometheus", "Grafana", "Loki"],
+    details: "Prometheus, Grafana, Loki - implementing system monitoring, visualizing metrics, and aggregating logs for production environments.",
+  },
+  {
+    category: "Server & Linux Administration",
+    details: "Linux, VPS management, shell scripting - deploying and maintaining applications on Linux servers, configuring VPS environments, and managing server operations.",
   },
 ];
-
-// https://devicon.dev/?utm_source=chatgpt.com
 
 const Skill = () => {
   return (
@@ -34,29 +36,19 @@ const Skill = () => {
       <h2 className="text-2xl font-semibold mb-10 text-center tracking-tight">
         Skills
       </h2>
-      <div className="max-w-3xl mx-auto space-y-8">
-        {skillCategories.map((category) => (
-          <div key={category.category}>
-            <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-3 uppercase tracking-wide">
-              {category.category}
+      <div className="max-w-3xl mx-auto space-y-6">
+        {skillCategories.map((skillCategory) => (
+          <article
+            key={skillCategory.category}
+            className="rounded-lg border bg-white dark:bg-black p-6 transition border-gray-300 dark:border-gray-800 text-left"
+          >
+            <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wide">
+              {skillCategory.category}
             </h3>
-            <div className="flex flex-wrap gap-3 justify-center">
-              {category.skills.map((skill) => (
-                <div
-                  key={skill}
-                  className="px-5 h-12 flex justify-center items-center py-1 bg-white dark:bg-black hover:bg-gray-200 dark:hover:bg-gray-800 text-sm rounded-2xl border border-gray-300 dark:border-gray-800"
-                >
-                  <img
-                    src={`/languages/${skill === "SwiftUI" ? "swift" : skill === "Cpp" ? "c++" : skill.toLowerCase()}.svg`}
-                    alt={`${skill} logo`}
-                    className="w-4 h-4 mr-2 dark:invert"
-                    onError={(e) => (e.currentTarget.style.display = "none")}
-                  />
-                  <span>{skill}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+            <p className="text-sm text-gray-700 dark:text-gray-300">
+              {skillCategory.details}
+            </p>
+          </article>
         ))}
       </div>
     </section>

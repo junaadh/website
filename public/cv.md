@@ -15,7 +15,7 @@ low-level infrastructure and user-facing applications across iOS, macOS, and web
 **Taylor's University** - Subang Jaya, Malaysia  
 *January 2023 - January 2026*  
 Bachelor of Computer Science (Honors)  
-Major in Cyber Security; Extension in Artificial Intelligence; CGPA: 3.35
+Major in Cyber Security; Extension in Artificial Intelligence; CGPA: 3.42
 
 **Addu High School** - Addu City, Maldives  
 *February 2019 - November 2021*  
@@ -46,7 +46,7 @@ Customer Support Specialist
   Rust (Axum, Actix), TypeScript/JavaScript (Vite + React, Node.js) — building high-performance, scalable, and secure APIs and web applications.
 
 - **Mobile & Desktop Development**:
-  Swift, SwiftUI, SwiftData, UIKit, React Native — developing iOS and macOS applications with cloud integration, responsive UIs, and optimized performance.
+  Swift, SwiftUI, SwiftData, UIKit, React Native, Svelte — developing iOS and macOS applications with cloud integration, responsive UIs, and optimized performance.
 
 - **Systems & Low-Level Programming**:
   Rust, C/C++, Zig — writing efficient, memory-safe system software, CLI tools, and performance-critical modules.
@@ -67,9 +67,10 @@ Customer Support Specialist
 
 - Built a self-hosted request management system using Rust and TypeScript
 - Designed backend with Axum, PostgreSQL, and integrated CI/CD pipelines for automated deployment
-- Implemented Dockerized infrastructure with Docker Compose for local development and Docker Swarm for scalable deployment
+- Implemented Dockerized infrastructure with Docker Compose for local development and scalable deployment
 - Monitored system metrics using Prometheus and Grafana, with log aggregation via Loki
-- Configured secure web serving using Caddy and Nginx
+- Configured secure web serving using Caddy
+- Supports tls using a valid certificate generated from CloudFlare
 
 # Languages
 - English

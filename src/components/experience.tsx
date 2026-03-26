@@ -32,7 +32,7 @@ const Experience = () => {
   return (
     <section id="experience" className="px-4 py-12">
       <h2 className="text-2xl font-semibold mb-10 text-center tracking-tight">
-        Experience
+        Work Experience
       </h2>
       <div className="max-w-3xl mx-auto">
         {experiences.map((exp) => (
@@ -52,17 +52,19 @@ const Experience = () => {
             <p className="text-xs text-gray-500 dark:text-gray-500 mb-4">
               {exp.period}
             </p>
-            <ul className="space-y-2 text-left">
-              {exp.responsibilities.map((responsibility, index) => (
-                <li
-                  key={index}
-                  className="text-sm text-gray-700 dark:text-gray-300 flex items-start"
-                >
-                  <span className="mr-2 text-red-500 dark:text-red-400">•</span>
-                  <span>{responsibility}</span>
-                </li>
-              ))}
-            </ul>
+            {exp.responsibilities.length > 0 && (
+              <ul className="space-y-2 text-left">
+                {exp.responsibilities.map((responsibility, index) => (
+                  <li
+                    key={index}
+                    className="text-sm text-gray-700 dark:text-gray-300 flex items-start"
+                  >
+                    <span className="mr-2 text-red-500 dark:text-red-400">•</span>
+                    <span>{responsibility}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         ))}
       </div>

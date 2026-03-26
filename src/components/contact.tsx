@@ -1,10 +1,10 @@
 type ContactEntry = {
-  icon: string,
-  label: string,
-  url: string,
+  icon: string;
+  label: string;
+  url: string;
 };
 
-const contact_list: ContactEntry[] = [
+const contactList: ContactEntry[] = [
   {
     icon: "/icons/github.svg",
     label: "Github",
@@ -29,7 +29,7 @@ const Contact = () => {
         Get in Touch
       </h2>
       <div className="max-w-sm mx-auto flex justify-center gap-4 text-sm text-gray-700 dark:text-gray-300">
-        {contact_list.map((entry) => (
+        {contactList.map((entry) => (
           <a
             key={entry.label}
             href={entry.url}
@@ -71,6 +71,6 @@ const Contact = () => {
       </div>
     </section>
   );
-}
+};
 
 export default Contact;

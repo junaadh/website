@@ -13,9 +13,9 @@ const repos: RepoData[] = [
     languages: [ "rust", "typescript" ],
   },
   {
-    name: "OxideX",
-    username: "oxidex",
-    description: "A high-performance dynamic object runtime in rust inspired by Objective-C",
+    name: "Corex",
+    username: "corex",
+    description: "A modular compiler toolchain based on Rust and Swift, designed for pluggable backend targets",
     languages: [ "rust" ],
   },
   {
