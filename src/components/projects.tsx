@@ -3,9 +3,17 @@ type RepoData = {
   username: string;
   description: string;
   languages: string[];
+  link?: string;
 };
 
 const repos: RepoData[] = [
+  {
+    name: "Bloom Light",
+    username: "bloom_light",
+    description: "Production e-commerce platform with DevOps infrastructure on Hetzner VPS, CI/CD via Tailscale, Cloudflare R2 + Neon",
+    languages: [ "typescript", "docker", "devops" ],
+    link: "https://bloomlightmv.com",
+  },
   {
     name: "Reqstly",
     username: "reqstly",
@@ -50,7 +58,7 @@ const Project = () => {
         {repos.map((repo) => (
           <a
             key={repo.name}
-            href={`https://github.com/${username}/${repo.username}`}
+            href={repo.link || `https://github.com/${username}/${repo.username}`}
             target="_blank"
             rel="noopener noreferrer"
             className="group block rounded-lg border bg-white dark:bg-black p-5 transition  border-gray-300 dark:border-gray-800 hover:border-red-300 dark:hover:border-red-600 w-full"

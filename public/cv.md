@@ -62,6 +62,19 @@ Customer Support Specialist
 
 ## Projects
 
+**Bloom Light** — Production E-commerce Platform (DevOps + Full Stack)  
+[bloomlightmv.com](https://bloomlightmv.com) • Live production site • Code available upon request
+
+- Deployed fully functioning e-commerce platform with live admin dashboard and customer storefront
+- Architected secure infrastructure on Hetzner VPS with hardened firewall, Docker containers, and Docker Compose orchestration
+- Built private Tailscale network connecting CI/CD runners to production services with encrypted peer-to-peer tunnels
+- Implemented GitHub Actions CI/CD pipeline with self-hosted runners deploying through Tailscale for secure, zero-trust access
+- Configured Caddy reverse proxy with automatic TLS via Cloudflare DNS challenge and HTTPS-only enforcement
+- Integrated Cloudflare R2 for CDN-backed object storage and Neon for serverless PostgreSQL with connection pooling
+- Designed multi-domain routing architecture (admin dashboard, root storefront, CDN assets) with origin isolation
+- Implemented Next.js ISR and cache invalidation for dynamic content with real-time updates across distributed services
+- Managed secrets securely via environment variables across build and runtime with Docker secrets for sensitive data
+
 **Reqstly** - [github.com/junaadh/reqstly](https://github.com/junaadh/reqstly.git)  
 [reqstly.com](https://reqstly.com)
 
