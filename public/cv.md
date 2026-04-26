@@ -43,7 +43,7 @@ Customer Support Specialist
 ## Skills
 
 - **Backend & Web Development**:
-  Rust (Axum, Actix), TypeScript/JavaScript (Vite + React, Node.js) — building high-performance, scalable, and secure APIs and web applications.
+  Rust (Axum, Actix), TypeScript/JavaScript (Vite + React, Node.js, SvelteKit, Tailwindcss), Bun/Node — building high-performance, scalable, and secure APIs and web applications.
 
 - **Mobile & Desktop Development**:
   Swift, SwiftUI, SwiftData, UIKit, React Native, Svelte — developing iOS and macOS applications with cloud integration, responsive UIs, and optimized performance.
@@ -61,6 +61,18 @@ Customer Support Specialist
   Linux, VPS management, shell scripting — deploying and maintaining applications on Linux servers, configuring VPS environments, and managing server operations.
 
 ## Projects
+
+**Aegis** - [github.com/junaadh/aegis](https://github.com/junaadh/aegis.git)
+
+- Designed and built a headless authentication platform in Rust with a modular workspace architecture (10 crates) covering domain logic, HTTP handlers, persistence, caching, config, and migrations
+- Implemented password authentication with Argon2id, WebAuthn passkeys, TOTP-based MFA with recovery codes, and session management with secure cookies and opaque bearer tokens
+- Built guest identity flows convertible into registered users with role-based access control and immutable audit logging
+- Engineered reliable async email delivery using the outbox pattern with SMTP transport and configurable templates for verification and password reset flows
+- Designed PostgreSQL schema with UUIDv7 primary keys, encrypted TOTP secrets, token hashing, GIN-indexed metadata, and SQLx-based migrations
+- Integrated Redis caching layer with connection pooling alongside PostgreSQL for session storage and runtime state
+- Built a multi-package TypeScript SDK (@junaadh/aegis-core, @junaadh/aegis-server, @junaadh/aegis-react) published via Bun workspaces for client and server integration
+- Containerized with a multi-stage Dockerfile and Docker Compose orchestration for local development with PostgreSQL, Redis, and Mailpit
+- Configured GitHub Actions CI/CD pipeline with Rust formatting, clippy linting, full test suite, SDK typechecking, and integration tests against live service instances with health checks
 
 **Bloom Light** — Production E-commerce Platform (DevOps + Full Stack)  
 [bloomlightmv.com](https://bloomlightmv.com) • Live production site • Code available upon request

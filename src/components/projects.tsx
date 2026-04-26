@@ -8,6 +8,12 @@ type RepoData = {
 
 const repos: RepoData[] = [
   {
+    name: "Aegis",
+    username: "aegis",
+    description: "Headless authentication platform in Rust with password auth, WebAuthn passkeys, TOTP MFA, session management, and a TypeScript SDK",
+    languages: [ "rust", "typescript" ],
+  },
+  {
     name: "Bloom Light",
     username: "bloom_light",
     description: "Production e-commerce platform with DevOps infrastructure on Hetzner VPS, CI/CD via Tailscale, Cloudflare R2 + Neon",
