@@ -46,7 +46,9 @@ References: [Typst data loading](https://typst.app/docs/reference/data-loading/)
 
 ## Theme and personal touches
 
-Auto follows the operating system, including changes while the page is open. Light uses muted paper and olive tones; Dark uses softened charcoal. The visible switcher can override Auto, persists locally, and synchronizes across tabs. `public/theme.js` runs before styles load to avoid a flash of the wrong theme. Storage failures fall back gracefully. No sticky navigation bar is used.
+Auto follows the operating system, including changes while the page is open. Light uses muted paper and olive tones; Dark uses softened charcoal. The floating corner bubble opens an appearance panel with Auto, Light, and Dark choices. Preferences persist locally and synchronize across tabs. The panel supports keyboard navigation, Escape, and outside-click dismissal. `public/theme.js` runs before styles load to avoid a flash of the wrong theme. Storage failures fall back gracefully. No sticky navigation bar is used.
+
+SVG arrows render consistently across mobile platforms without emoji substitution. Entrance animations, scroll reveals, staggered project filters, byte updates, and hover details respect the operating system's reduced-motion preference.
 
 ## Generated social previews and icons
 

@@ -243,6 +243,12 @@
     "English",
     "Dhivehi"
   ],
+  "stack": [
+    "RUST",
+    "C & C++",
+    "TYPESCRIPT",
+    "SWIFT"
+  ],
   "about": "I’m Junad, a software developer based in the Maldives. My work takes me from full-stack business applications to native apps, with personal projects in compilers, authentication, and low-level networking.",
   "social": {
     "title": "Junad | Systems & Full-Stack Developer",

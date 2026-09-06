@@ -15,7 +15,7 @@ export default function Accordion({
   const [open, setOpen] = useState(defaultOpen);
   const id = useId();
   return (
-    <div className="accordion">
+    <div className="mt-4">
       <button
         type="button"
         id={`${id}-trigger`}
@@ -23,12 +23,12 @@ export default function Accordion({
         aria-controls={`${id}-panel`}
         aria-label={context ? `${label} — ${context}` : label}
         onClick={() => setOpen((value) => !value)}
-        className="accordion-trigger group inline-flex items-center gap-3 transition-colors duration-200 motion-reduce:transition-none"
+        className="inline-flex min-h-10 cursor-pointer items-center gap-3 border-0 bg-transparent py-2 text-left text-[13px] text-secondary transition-colors duration-200 hover:text-accent active:text-accent"
       >
         {label}
         <span
           aria-hidden="true"
-          className={`inline-block text-[var(--accent)] transition-transform duration-300 ease-out motion-reduce:transition-none ${open ? "rotate-45" : "rotate-0"}`}
+          className={`inline-block text-accent transition-transform duration-300 ease-[var(--ease-spring)] ${open ? "rotate-45" : "rotate-0"}`}
         >
           +
         </span>
@@ -39,10 +39,10 @@ export default function Accordion({
         aria-labelledby={`${id}-trigger`}
         aria-hidden={!open}
         inert={!open}
-        className={`grid transition-[grid-template-rows,opacity] duration-300 ease-in-out motion-reduce:transition-none ${open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
+        className={`grid transition-[grid-template-rows,opacity] duration-300 ease-[var(--ease-settle)] ${open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"}`}
       >
         <div className="min-h-0 overflow-hidden">
-          <div className="accordion-content">{children}</div>
+          <div className="pt-[5px] pb-2">{children}</div>
         </div>
       </div>
     </div>
