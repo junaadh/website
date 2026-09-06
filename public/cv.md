@@ -1,102 +1,89 @@
-# Moosa Junad  
+# Moosa Junad
 
-Addu City, Maldives • +960 7835181 • [junaadh.02@gmail.com](mailto:junaadh.02@gmail.com)  
-[github.com/junaadh](https://www.github.com/junaadh) • [junaadh.dev](https://www.junaadh.dev)
+Software Developer · Systems & Full Stack
+
+Addu City, Maldives · +960 7835181 · [junaadh.02@gmail.com](mailto:junaadh.02@gmail.com)
+
+[Portfolio](https://junaadh.dev) · [GitHub](https://github.com/junaadh)
+
+Software developer working across systems, backend services, and user-facing applications. Interested in what happens beneath the abstraction: memory, runtimes, protocols, and the infrastructure that makes software dependable.
+
+## Experience
+
+### SME Digital — Software Developer
+
+June 2026 - Present · Maldives
+
+- Develop and maintain full-stack business applications using TypeScript, React, and relational databases.
+- Implement API integrations, data validation, and configurable workflows across customer-facing and internal applications.
+- Improve access controls, database tooling, and development workflows while maintaining existing services.
+
+### Alva Productions — Software Engineer Intern
+
+September 2025 - January 2026 · Subang Jaya, Malaysia
+
+- Developed and refactored SwiftUI applications with SwiftData and CloudKit integration.
+- Improved Flutter application responsiveness and maintained applications integrating Swift and Flutter components.
+
+### Dhiraagu — Customer Support Specialist
+
+April 2022 - December 2022 · Addu City, Maldives
 
 
-## Summary
 
-Software engineer with experience in systems and application development. 
-Skilled in Rust, Swift, C/C++, and JavaScript frameworks, with experience building 
-low-level infrastructure and user-facing applications across iOS, macOS, and web.
+## Technical skills
 
-## Education
-
-**Taylor's University** - Subang Jaya, Malaysia  
-*January 2023 - January 2026*  
-Bachelor of Computer Science (Honors)  
-Major in Cyber Security; Extension in Artificial Intelligence; CGPA: 3.42
-
-**Addu High School** - Addu City, Maldives  
-*February 2019 - November 2021*  
-Pearson Edexcel A'level; GCE English & HSC; Science 
-
-**Sharafuddin School** - Addu City, Maldives  
-*January 2016 - November 2018*  
-Cambridge GCE O'level; IGCSE English & SSC; Science
-
-## Work Experience
-
-**Alva Productions** - Subang Jaya, Malaysia   
-Software Engineer Intern   
-*September 2025 - January 2026*
-
-- Designed, developed, and refactored applications using SwiftUI
-- Modelled application data flow using SwiftData with CloudKit integration
-- Improved performance and responsiveness in Flutter applications
-- Developed and maintained applications integrating Swift and Flutter components
-
-**Dhiraagu** - Addu City, Maldives  
-Customer Support Specialist  
-*April 2022 - December 2022*
-
-## Skills
-
-- **Backend & Web Development**:
-  Rust (Axum, Actix), TypeScript/JavaScript (Vite + React, Node.js, SvelteKit, Tailwindcss), Bun/Node — building high-performance, scalable, and secure APIs and web applications.
-
-- **Mobile & Desktop Development**:
-  Swift, SwiftUI, SwiftData, UIKit, React Native, Svelte — developing iOS and macOS applications with cloud integration, responsive UIs, and optimized performance.
-
-- **Systems & Low-Level Programming**:
-  Rust, C/C++, Zig — writing efficient, memory-safe system software, CLI tools, and performance-critical modules.
-
-- **DevOps & Deployment**:
-  Docker, Docker Compose, Docker Swarm, Colima, CI/CD pipelines, Caddy, Nginx, AWS, Cloudflare — containerizing applications, orchestrating services, automating deployments, and configuring secure infrastructure.
-
-- **Monitoring & Observability**:
-  Prometheus, Grafana, Loki — implementing system monitoring, visualizing metrics, and aggregating logs for production environments.
-
-- **Server & Linux Administration**:
-  Linux, VPS management, shell scripting — deploying and maintaining applications on Linux servers, configuring VPS environments, and managing server operations.
+- **Systems:** Rust, C / C++, Zig, AArch64 assembly
+- **Full stack:** TypeScript / JavaScript, React / Next.js / Remix, Axum / Hono, PostgreSQL / Redis
+- **Native:** Swift / SwiftUI, SwiftData / CloudKit, UIKit, Flutter
+- **Infrastructure:** Docker / Linux, GitHub Actions, Cloudflare / Caddy, Prometheus / Grafana / Loki
 
 ## Projects
 
-**Aegis** - [github.com/junaadh/aegis](https://github.com/junaadh/aegis.git)
+### [Corex](https://github.com/junaadh/corex)
 
-- Designed and built a headless authentication platform in Rust with a modular workspace architecture (10 crates) covering domain logic, HTTP handlers, persistence, caching, config, and migrations
-- Implemented password authentication with Argon2id, WebAuthn passkeys, TOTP-based MFA with recovery codes, and session management with secure cookies and opaque bearer tokens
-- Built guest identity flows convertible into registered users with role-based access control and immutable audit logging
-- Engineered reliable async email delivery using the outbox pattern with SMTP transport and configurable templates for verification and password reset flows
-- Designed PostgreSQL schema with UUIDv7 primary keys, encrypted TOTP secrets, token hashing, GIN-indexed metadata, and SQLx-based migrations
-- Integrated Redis caching layer with connection pooling alongside PostgreSQL for session storage and runtime state
-- Built a multi-package TypeScript SDK (@junaadh/aegis-core, @junaadh/aegis-server, @junaadh/aegis-react) published via Bun workspaces for client and server integration
-- Containerized with a multi-stage Dockerfile and Docker Compose orchestration for local development with PostgreSQL, Redis, and Mailpit
-- Configured GitHub Actions CI/CD pipeline with Rust formatting, clippy linting, full test suite, SDK typechecking, and integration tests against live service instances with health checks
+- Developed a modular compiler toolchain in Rust and Swift, designed around pluggable backend targets.
 
-**Bloom Light** — Production E-commerce Platform (DevOps + Full Stack)  
-[bloomlightmv.com](https://bloomlightmv.com) • Live production site • Code available upon request
+### [Aegis](https://github.com/junaadh/aegis)
 
-- Deployed fully functioning e-commerce platform with live admin dashboard and customer storefront
-- Architected secure infrastructure on Hetzner VPS with hardened firewall, Docker containers, and Docker Compose orchestration
-- Built private Tailscale network connecting CI/CD runners to production services with encrypted peer-to-peer tunnels
-- Implemented GitHub Actions CI/CD pipeline with self-hosted runners deploying through Tailscale for secure, zero-trust access
-- Configured Caddy reverse proxy with automatic TLS via Cloudflare DNS challenge and HTTPS-only enforcement
-- Integrated Cloudflare R2 for CDN-backed object storage and Neon for serverless PostgreSQL with connection pooling
-- Designed multi-domain routing architecture (admin dashboard, root storefront, CDN assets) with origin isolation
-- Implemented Next.js ISR and cache invalidation for dynamic content with real-time updates across distributed services
-- Managed secrets securely via environment variables across build and runtime with Docker secrets for sensitive data
+- Built a modular Rust authentication platform with WebAuthn passkeys, TOTP MFA, sessions, and role-based access control.
+- Integrated PostgreSQL, Redis, an asynchronous email outbox, and a TypeScript SDK; automated checks with GitHub Actions.
 
-**Reqstly** - [github.com/junaadh/reqstly](https://github.com/junaadh/reqstly.git)  
-[reqstly.com](https://reqstly.com)
+### [Web Server](https://github.com/junaadh/WebServer)
 
-- Built a self-hosted request management system using Rust and TypeScript
-- Designed backend with Axum, PostgreSQL, and integrated CI/CD pipelines for automated deployment
-- Implemented Dockerized infrastructure with Docker Compose for local development and scalable deployment
-- Monitored system metrics using Prometheus and Grafana, with log aggregation via Loki
-- Configured secure web serving using Caddy
-- Supports tls using a valid certificate generated from CloudFlare
+- Implemented a TCP server in AArch64 assembly, exploring low-level networking and system interfaces.
 
-# Languages
-- English
-- Dhivehi
+### [Bloom Light](https://bloomlightmv.com)
+
+- Delivered an e-commerce storefront and admin dashboard with containerized infrastructure, PostgreSQL, and object storage.
+- Automated deployments with GitHub Actions and configured private networking, reverse proxying, and TLS.
+
+## Education
+
+### Taylor's University
+
+January 2023 - January 2026
+
+Bachelor of Computer Science (Honors)
+
+Cyber Security major; Artificial Intelligence extension. CGPA: 3.42.
+
+### Addu High School
+
+February 2019 - November 2021
+
+Pearson Edexcel A'level; GCE English & HSC
+
+Science
+
+### Sharafuddin School
+
+January 2016 - November 2018
+
+Cambridge GCE O'level; IGCSE English & SSC
+
+Science
+
+## Languages
+
+English, Dhivehi

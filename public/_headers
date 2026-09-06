@@ -1,2 +1,8 @@
 /cv.pdf
-  Cache-Control: public, max-age=31536000, immutable
+  Cache-Control: public, max-age=0, must-revalidate
+  Content-Type: application/pdf
+/cv.md
+  Cache-Control: public, max-age=0, must-revalidate
+
+/social.png
+  Cache-Control: public, max-age=0, must-revalidate

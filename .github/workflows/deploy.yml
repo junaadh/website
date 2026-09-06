@@ -1,0 +1,75 @@
+name: Build portfolio and CV
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: portfolio-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - uses: typst-community/setup-typst@v5
+        with:
+          typst-version: 0.14.2
+      - name: Lint
+        run: bun run lint
+      - name: Test theme preferences
+        run: bun run test
+      - name: Render CV, generate social assets, and build portfolio
+        run: bun run build
+      - name: Check PDF and shared profile
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y poppler-utils
+          node scripts/check-build.mjs
+          node scripts/check-social.mjs
+      - name: Upload deployable site
+        uses: actions/upload-artifact@v4
+        with:
+          name: portfolio-${{ github.sha }}
+          path: dist
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload CV
+        uses: actions/upload-artifact@v4
+        with:
+          name: junaadh-cv
+          path: public/cv.pdf
+          if-no-files-found: error
+
+  deploy:
+    needs: build
+    # Enable after adding Cloudflare credentials and disabling duplicate Git builds.
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master' && vars.CLOUDFLARE_DEPLOY_ENABLED == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://junaadh.dev
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: portfolio-${{ github.sha }}
+          path: dist
+      - name: Deploy site and freshly rendered CV to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=website --branch=master

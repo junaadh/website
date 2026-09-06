@@ -1,0 +1,22 @@
+{
+  "name": "Junad",
+  "short_name": "junaadh",
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#171916",
+  "theme_color": "#171916",
+  "icons": [
+    {
+      "src": "/generated/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/generated/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

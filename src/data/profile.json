@@ -1,0 +1,259 @@
+{
+  "name": "Junad",
+  "handle": "junaadh",
+  "title": "Software Developer",
+  "location": "Addu City, Maldives",
+  "email": "junaadh.02@gmail.com",
+  "phone": "+960 7835181",
+  "website": "https://junaadh.dev",
+  "github": "https://github.com/junaadh",
+  "summary": "Software developer working across systems, backend services, and user-facing applications. Interested in what happens beneath the abstraction: memory, runtimes, protocols, and the infrastructure that makes software dependable.",
+  "experience": [
+    {
+      "company": "SME Digital",
+      "role": "Software Developer",
+      "period": "June 2026 - Present",
+      "current": true,
+      "location": "Maldives",
+      "tags": [
+        "TypeScript",
+        "React",
+        "APIs",
+        "PostgreSQL"
+      ],
+      "summary": "Full-stack development for business applications and internal tools.",
+      "bullets": [
+        "Develop and maintain full-stack business applications using TypeScript, React, and relational databases.",
+        "Implement API integrations, data validation, and configurable workflows across customer-facing and internal applications.",
+        "Improve access controls, database tooling, and development workflows while maintaining existing services."
+      ]
+    },
+    {
+      "company": "Alva Productions",
+      "role": "Software Engineer Intern",
+      "period": "September 2025 - January 2026",
+      "current": false,
+      "location": "Subang Jaya, Malaysia",
+      "tags": [
+        "SwiftUI",
+        "SwiftData",
+        "CloudKit",
+        "Flutter"
+      ],
+      "summary": "Native application development across the Apple ecosystem.",
+      "bullets": [
+        "Developed and refactored SwiftUI applications with SwiftData and CloudKit integration.",
+        "Improved Flutter application responsiveness and maintained applications integrating Swift and Flutter components."
+      ]
+    },
+    {
+      "company": "Dhiraagu",
+      "role": "Customer Support Specialist",
+      "period": "April 2022 - December 2022",
+      "current": false,
+      "location": "Addu City, Maldives",
+      "tags": [],
+      "summary": "Customer support in telecommunications.",
+      "bullets": []
+    }
+  ],
+  "projects": [
+    {
+      "name": "Corex",
+      "category": "Systems",
+      "label": "Compiler toolchain",
+      "description": "Exploring the path from source code to execution. A modular compiler toolchain built around pluggable backend targets.",
+      "tags": [
+        "Rust",
+        "Swift",
+        "Compilers"
+      ],
+      "url": "https://github.com/junaadh/corex",
+      "motif": "compiler",
+      "cv": true,
+      "bullets": [
+        "Developed a modular compiler toolchain in Rust and Swift, designed around pluggable backend targets."
+      ]
+    },
+    {
+      "name": "Aegis",
+      "category": "Full stack",
+      "label": "Authentication infrastructure",
+      "description": "Headless authentication in Rust. Passwords, passkeys, multi-factor authentication, and a TypeScript SDK to connect it all.",
+      "tags": [
+        "Rust",
+        "PostgreSQL",
+        "TypeScript"
+      ],
+      "url": "https://github.com/junaadh/aegis",
+      "motif": "auth",
+      "cv": true,
+      "bullets": [
+        "Built a modular Rust authentication platform with WebAuthn passkeys, TOTP MFA, sessions, and role-based access control.",
+        "Integrated PostgreSQL, Redis, an asynchronous email outbox, and a TypeScript SDK; automated checks with GitHub Actions."
+      ]
+    },
+    {
+      "name": "Web Server",
+      "category": "Systems",
+      "label": "Close to the metal",
+      "description": "A small TCP server written in AArch64 assembly. Working directly with the machinery underneath a network request.",
+      "tags": [
+        "AArch64",
+        "Assembly",
+        "TCP"
+      ],
+      "url": "https://github.com/junaadh/WebServer",
+      "motif": "asm",
+      "cv": true,
+      "bullets": [
+        "Implemented a TCP server in AArch64 assembly, exploring low-level networking and system interfaces."
+      ]
+    },
+    {
+      "name": "Bloom Light",
+      "category": "Full stack",
+      "label": "Commerce & infrastructure",
+      "description": "An e-commerce platform spanning storefront, administration, and deployment infrastructure. Built through to production.",
+      "tags": [
+        "Next.js",
+        "Docker",
+        "Cloudflare"
+      ],
+      "url": "https://bloomlightmv.com",
+      "motif": "commerce",
+      "cv": true,
+      "bullets": [
+        "Delivered an e-commerce storefront and admin dashboard with containerized infrastructure, PostgreSQL, and object storage.",
+        "Automated deployments with GitHub Actions and configured private networking, reverse proxying, and TLS."
+      ]
+    },
+    {
+      "name": "Reqstly",
+      "category": "Full stack",
+      "label": "Self-hosted request management",
+      "description": "A Rust and TypeScript application with a self-hosted deployment stack, metrics, and centralized logging.",
+      "tags": [
+        "Axum",
+        "TypeScript",
+        "Grafana"
+      ],
+      "url": "https://github.com/junaadh/reqstly",
+      "motif": "requests",
+      "cv": false,
+      "bullets": []
+    },
+    {
+      "name": "PresenceKit",
+      "category": "Native",
+      "label": "macOS integration",
+      "description": "Discord Rich Presence for macOS. Native tooling that connects desktop activity to a shared presence.",
+      "tags": [
+        "Swift",
+        "macOS",
+        "RPC"
+      ],
+      "url": "https://github.com/junaadh/PresenceKit",
+      "motif": "native",
+      "cv": false,
+      "bullets": []
+    },
+    {
+      "name": "Discord RPC Extension",
+      "category": "Native",
+      "label": "Editor integration",
+      "description": "A Rust extension connecting the Helix editor to Discord Rich Presence.",
+      "tags": [
+        "Rust",
+        "Helix",
+        "RPC"
+      ],
+      "url": "https://github.com/junaadh/rise_code",
+      "motif": "editor",
+      "cv": false,
+      "bullets": []
+    }
+  ],
+  "skills": [
+    {
+      "name": "Systems",
+      "description": "The foundations beneath the interface.",
+      "items": [
+        "Rust",
+        "C / C++",
+        "Zig",
+        "AArch64 assembly"
+      ]
+    },
+    {
+      "name": "Full stack",
+      "description": "From a database query to the final interaction.",
+      "items": [
+        "TypeScript / JavaScript",
+        "React / Next.js / Remix",
+        "Axum / Hono",
+        "PostgreSQL / Redis"
+      ]
+    },
+    {
+      "name": "Native",
+      "description": "Applications that feel at home on the platform.",
+      "items": [
+        "Swift / SwiftUI",
+        "SwiftData / CloudKit",
+        "UIKit",
+        "Flutter"
+      ]
+    },
+    {
+      "name": "Infrastructure",
+      "description": "Build it, ship it, understand how it runs.",
+      "items": [
+        "Docker / Linux",
+        "GitHub Actions",
+        "Cloudflare / Caddy",
+        "Prometheus / Grafana / Loki"
+      ]
+    }
+  ],
+  "education": [
+    {
+      "institution": "Taylor's University",
+      "period": "January 2023 - January 2026",
+      "qualification": "Bachelor of Computer Science (Honors)",
+      "details": "Cyber Security major; Artificial Intelligence extension. CGPA: 3.42.",
+      "location": "Subang Jaya, Malaysia"
+    },
+    {
+      "institution": "Addu High School",
+      "period": "February 2019 - November 2021",
+      "qualification": "Pearson Edexcel A'level; GCE English & HSC",
+      "details": "Science",
+      "location": "Addu City, Maldives"
+    },
+    {
+      "institution": "Sharafuddin School",
+      "period": "January 2016 - November 2018",
+      "qualification": "Cambridge GCE O'level; IGCSE English & SSC",
+      "details": "Science",
+      "location": "Addu City, Maldives"
+    }
+  ],
+  "languages": [
+    "English",
+    "Dhivehi"
+  ],
+  "about": "I’m Junad, a software developer based in the Maldives. My work takes me from full-stack business applications to native apps, with personal projects in compilers, authentication, and low-level networking.",
+  "social": {
+    "title": "Junad | Systems & Full-Stack Developer",
+    "description": "Hi, I’m Junaadh. A developer from the Maldives building across the stack, from low-level systems to the browser.",
+    "headline": [
+      "From the bits.",
+      "To the browser."
+    ],
+    "label": "Systems · Full stack · Native",
+    "imageAlt": "Junad — From the bits. To the browser. Systems and full-stack developer from the Maldives."
+  },
+  "commonName": "Junaadh",
+  "fullName": "Moosa Junad"
+}
