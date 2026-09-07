@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
-import profile from "./data/profile.json";
+import { flags, profile } from "./config";
 import ThemeSwitcher from "./components/theme-switcher";
 import Accordion from "./components/accordion";
 import ArrowIcon from "./components/arrow-icon";
@@ -8,7 +8,7 @@ import useReveal from "./components/use-reveal";
 import SlidingControls from "./components/sliding-controls";
 import SectionNav from "./components/section-nav";
 import CommandPalette from "./components/command-palette";
-import { copyText } from "./components/copy-text";
+import { copyDeferred, copyText } from "./components/copy-text";
 
 const filters = ["All work", "Systems", "Full stack", "Native"];
 // Bypass copies stored under the previous one-year immutable cache policy.
@@ -118,7 +118,11 @@ function CopyEmail({ className = "" }: { className?: string }) {
         }`}
         aria-hidden="true"
       >
-        {state === "idle" ? "copy" : state === "done" ? "copied ✓" : "copy failed"}
+        {state === "idle"
+          ? "copy"
+          : state === "done"
+            ? "copied ✓"
+            : "copy failed"}
       </span>
       <span role="status" className="sr-only">
         {state === "done"
@@ -171,8 +175,23 @@ type Format = keyof typeof bases;
 const render = (byte: number, format: Format) =>
   byte.toString(bases[format]).padStart(widths[format], "0");
 
+/** A /b/<id> permalink; the edge injects the shared string into the document. */
+function seededValue() {
+  if (typeof document === "undefined") return "hello, world";
+  const element = document.getElementById("byte-seed");
+  if (!element?.textContent) return "hello, world";
+  try {
+    const parsed = JSON.parse(element.textContent);
+    return typeof parsed === "string" && parsed ? parsed : "hello, world";
+  } catch {
+    return "hello, world";
+  }
+}
+
 function ByteInspector() {
-  const [value, setValue] = useState("hello, world");
+  const [value, setValue] = useState(seededValue);
+  const [shared, setShared] = useState("");
+  const [fallback, setFallback] = useState("");
   const [format, setFormat] = useState<Format>("hex");
   const [hovered, setHovered] = useState<number | null>(null);
   const cells = useMemo(() => toCells(value), [value]);
@@ -249,6 +268,25 @@ function ByteInspector() {
           );
         })}
       </div>
+      {fallback && (
+        <div className="flex items-center gap-2 border-t border-visual-line px-[17px] py-2">
+          <input
+            readOnly
+            value={fallback}
+            onFocus={(event) => event.target.select()}
+            autoFocus
+            className="w-full border-0 bg-transparent font-mono text-[11px] text-accent outline-none"
+            aria-label="Share link"
+          />
+          <button
+            type="button"
+            className="shrink-0 font-mono text-[10px] text-muted hover:text-accent"
+            onClick={() => setFallback("")}
+          >
+            ×
+          </button>
+        </div>
+      )}
       <div className="flex items-center justify-between gap-2 border-t border-visual-line px-[17px] py-3 text-[10px] text-muted">
         <span id="memory-hint" role="status" className="truncate">
           {active ? (
@@ -263,6 +301,39 @@ function ByteInspector() {
             "Type something. See the bytes."
           )}
         </span>
+        <button
+          type="button"
+          className="shrink-0 border border-transparent p-[6px] font-mono text-[10px] text-muted transition-colors duration-200 hover:text-accent active:text-accent"
+          onClick={() => {
+            /* Started, not awaited: the clipboard write has to be issued inside
+               this handler or Safari revokes permission mid-flight. */
+            const link = fetch("/api/b", {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: JSON.stringify({ value }),
+            })
+              .then((response) => response.json() as Promise<{ url?: string }>)
+              .then(({ url }) => {
+                if (!url) throw new Error("no link");
+                return new URL(url, location.origin).href;
+              });
+
+            copyDeferred(link).then(
+              (copied) => {
+                setShared(copied ? "link copied" : "press ⌘C");
+                // When the clipboard refuses, offer the link to copy by hand.
+                if (!copied) link.then(setFallback);
+                window.setTimeout(() => setShared(""), 2400);
+              },
+              () => {
+                setShared("could not share");
+                window.setTimeout(() => setShared(""), 2400);
+              },
+            );
+          }}
+        >
+          {shared || "SHARE"}
+        </button>
         <SlidingControls
           className="flex gap-[2px]"
           value={format}
@@ -410,7 +481,7 @@ function App() {
         </a>
         <div className="flex items-center gap-4 font-mono text-[12px] tracking-[1px] text-muted max-md:text-[10px] max-md:tracking-[0.4px] max-sm:text-[9px]">
           <span>MALDIVES · UTC+05:00</span>
-          <PaletteHint />
+          {flags.commandPalette && <PaletteHint />}
         </div>
       </div>
 
@@ -419,7 +490,9 @@ function App() {
           className={`${shell} pt-[42px] max-md:pt-3`}
           aria-labelledby="hero-title"
         >
-          <div className="grid grid-cols-[1.15fr_1fr] items-center gap-[60px] pt-[84px] pb-[72px] wide:py-[100px] max-lg:gap-8 max-md:grid-cols-1 max-md:gap-[45px] max-md:pt-12 max-md:pb-[38px]">
+          <div
+            className={`grid items-center gap-[60px] pt-[84px] pb-[72px] wide:py-[100px] max-lg:gap-8 max-md:grid-cols-1 max-md:gap-[45px] max-md:pt-12 max-md:pb-[38px] ${flags.byteInspector ? "grid-cols-[1.15fr_1fr]" : "grid-cols-1"}`}
+          >
             <div className="[&>*:nth-child(2)]:[animation-delay:60ms] [&>*:nth-child(3)]:[animation-delay:120ms] [&>*:nth-child(4)]:[animation-delay:180ms] [&>*:nth-child(5)]:[animation-delay:240ms] [&>*]:animate-arrive">
               <p className="mb-[22px] font-[Georgia,serif] text-[22px] leading-[1.6] tracking-normal text-secondary italic">
                 Hi, I'm {profile.commonName}.
@@ -467,26 +540,30 @@ function App() {
             </div>
             {/* scroll-exit and animate-arrive both drive `animation`, so they
                 sit on separate elements rather than fighting over it. */}
-            <div className="scroll-exit relative min-w-0 max-md:w-full max-md:max-w-[520px]">
-              <div className="animate-arrive [animation-delay:160ms]">
-                <div className="flex justify-between gap-[10px] pb-[14px] font-mono text-[10px] leading-[1.6] text-muted max-sm:text-[9px]">
-                  <span>A SMALL THING TO PLAY WITH</span>
-                  <span className="text-accent" aria-hidden="true">
-                    [ interactive ]
-                  </span>
-                </div>
-                <ByteInspector />
-                <div className="flex justify-between gap-[10px] pt-[15px] font-mono text-[12px] leading-[1.6] text-muted">
-                  <span>A little hello, underneath it all.</span>
-                  <ArrowIcon direction="turn-right" />
+            {flags.byteInspector && (
+              <div className="scroll-exit relative min-w-0 max-md:w-full max-md:max-w-[520px]">
+                <div className="animate-arrive [animation-delay:160ms]">
+                  <div className="flex justify-between gap-[10px] pb-[14px] font-mono text-[10px] leading-[1.6] text-muted max-sm:text-[9px]">
+                    <span>A SMALL THING TO PLAY WITH</span>
+                    <span className="text-accent" aria-hidden="true">
+                      [ interactive ]
+                    </span>
+                  </div>
+                  <ByteInspector />
+                  <div className="flex justify-between gap-[10px] pt-[15px] font-mono text-[12px] leading-[1.6] text-muted">
+                    <span>A little hello, underneath it all.</span>
+                    <ArrowIcon direction="turn-right" />
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
           <div className="group/ticker flex justify-between gap-4 border-y border-line py-6 font-mono text-[11px] tracking-[1px] text-muted max-md:text-[9px] max-md:tracking-normal">
             <div className="relative min-w-0 flex-1 overflow-hidden [mask-image:linear-gradient(90deg,transparent,#000_28px,#000_calc(100%-28px),transparent)]">
-              <div className="flex w-max motion-safe:animate-marquee group-hover/ticker:[animation-play-state:paused]">
-                {[0, 1].map((copy) => (
+              <div
+                className={`flex w-max ${flags.marquee ? "motion-safe:animate-marquee group-hover/ticker:[animation-play-state:paused]" : ""}`}
+              >
+                {(flags.marquee ? [0, 1] : [0]).map((copy) => (
                   <span
                     key={copy}
                     className="flex shrink-0"
@@ -847,8 +924,8 @@ function App() {
           </div>
         </section>
       </main>
-      <SectionNav />
-      <CommandPalette />
+      {flags.sectionNav && <SectionNav />}
+      {flags.commandPalette && <CommandPalette />}
       <ThemeSwitcher />
       <footer
         className={`${shell} flex justify-between pt-[35px] pb-[100px] font-mono text-[11px] text-muted max-md:gap-5 max-md:leading-[1.8] max-sm:flex-col`}

@@ -3,12 +3,11 @@ import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { Resvg } from "@resvg/resvg-js";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { resolveProfile } from "./live-profile.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const output = path.join(root, "public/generated");
-const p = JSON.parse(
-  await readFile(path.join(root, "src/data/profile.json"), "utf8"),
-);
+const { profile: p } = await resolveProfile(root);
 // Same tokens the site renders with, so the card matches what a visitor lands on.
 const palette = JSON.parse(
   await readFile(path.join(root, "src/data/palette.json"), "utf8"),
@@ -203,6 +202,7 @@ await writeFile(
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <script src="/theme.js"></script>
 <style>
+@font-face{font-family:Inter;font-style:normal;font-weight:100 900;font-display:swap;src:url('/fonts/inter-latin.woff2') format('woff2');unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD}@font-face{font-family:Inter;font-style:normal;font-weight:100 900;font-display:swap;src:url('/fonts/inter-latin-ext.woff2') format('woff2');unicode-range:U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF}
 :root{color-scheme:dark;${vars("dark")}}
 :root[data-theme=light]{color-scheme:light;${vars("light")}}
 *{box-sizing:border-box}

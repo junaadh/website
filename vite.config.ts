@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 
 // Crawlers get complete metadata in the initial HTML, without executing React.
 function socialHead() {
@@ -62,6 +63,16 @@ function socialHead() {
   ].join("\n    ");
 }
 export default defineConfig({
+  // Two entries: the public site, and the authenticated panel. Keeping them
+  // separate means the ~240 kB public bundle never carries the editor.
+  build: {
+    rollupOptions: {
+      input: {
+        main: fileURLToPath(new URL("./index.html", import.meta.url)),
+        admin: fileURLToPath(new URL("./admin.html", import.meta.url)),
+      },
+    },
+  },
   plugins: [
     react(),
     tailwindcss(),

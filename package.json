@@ -4,20 +4,24 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "node scripts/build-social.mjs && vite",
+    "dev": "node scripts/dev.mjs",
+    "dev:vite": "node scripts/build-social.mjs && vite",
     "build": "node scripts/build-social.mjs && node scripts/build-cv.mjs && tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "generate-cv": "node scripts/build-cv.mjs",
     "generate-social": "node scripts/build-social.mjs",
-    "test": "node --test scripts/theme.test.mjs"
+    "test": "node --experimental-strip-types --disable-warning=ExperimentalWarning --test scripts/theme.test.mjs scripts/config.test.mts scripts/crypto.test.mts"
   },
   "dependencies": {
+    "@simplewebauthn/browser": "^14.0.0",
+    "@simplewebauthn/server": "^14.0.1",
     "@tailwindcss/vite": "^4.1.7",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^5.20260906.1",
     "@eslint/js": "^9.25.0",
     "@resvg/resvg-js": "2.6.2",
     "@types/node": "22",
@@ -28,9 +32,11 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
+    "qrcode": "^1.5.4",
     "tailwindcss": "^4.1.7",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.30.1",
-    "vite": "^6.3.5"
+    "vite": "^6.3.5",
+    "wrangler": "^4.129.0"
   }
 }

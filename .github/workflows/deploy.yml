@@ -4,6 +4,11 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+    inputs:
+      reason:
+        description: Why the run was triggered ("cv" comes from the admin panel)
+        type: string
+        default: manual
 
 permissions:
   contents: read
@@ -34,6 +39,16 @@ jobs:
         run: bun run test
       - name: Render CV, generate social assets, and build portfolio
         run: bun run build
+        env:
+          # Renders the CV and social card from what the panel published, so an
+          # admin-triggered rebuild matches the live site. Falls back to the
+          # committed profile if unset or unreachable.
+          SITE_CONFIG_URL: https://junaadh.dev/api/config
+      # Catches a broken Function at build time. Without this the site would
+      # deploy fine and every /api route would simply 404.
+      - name: Compile Pages Functions
+        run: bunx wrangler pages functions build --outdir=/tmp/functions-check
+
       - name: Check PDF and shared profile
         run: |
           sudo apt-get update -qq
@@ -54,6 +69,23 @@ jobs:
           path: public/cv.pdf
           if-no-files-found: error
 
+      # Typst cannot run in a Worker, so the admin panel's "regenerate CV"
+      # triggers this workflow instead and the render lands in R2, where
+      # functions/cv.pdf.ts serves it ahead of the deployed copy.
+      - name: Publish CV to R2
+        # Gated on the credential, not on CLOUDFLARE_DEPLOY_ENABLED: cv.yml
+        # writes R2 on every panel rebuild, so a normal deploy must refresh it
+        # too or /cv.pdf would keep serving the older object indefinitely.
+        if: >-
+          github.ref == 'refs/heads/master' &&
+          github.event_name != 'pull_request' &&
+          secrets.CLOUDFLARE_API_TOKEN != ''
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: r2 object put portfolio-assets/cv.pdf --file=public/cv.pdf --content-type=application/pdf --remote
+
   deploy:
     needs: build
     # Enable after adding Cloudflare credentials and disabling duplicate Git builds.
@@ -63,6 +95,10 @@ jobs:
       name: production
       url: https://junaadh.dev
     steps:
+      # Required before download-artifact: checkout cleans the workspace, and
+      # `wrangler pages deploy` compiles functions/ from the working directory —
+      # the artifact holds only dist, so without this every Function 404s.
+      - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
           name: portfolio-${{ github.sha }}

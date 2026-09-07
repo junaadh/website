@@ -25,3 +25,12 @@ dist-ssr
 
 # Rebuilt before dev and production builds
 public/generated/
+
+# Local Miniflare state for `wrangler pages dev`
+.wrangler/
+
+# Local Worker secrets
+.dev.vars
+
+# Written by build-cv from the committed or published profile
+src/data/profile.build.json

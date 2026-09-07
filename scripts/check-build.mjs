@@ -20,6 +20,13 @@ for (const phrase of [
 ]) {
   assert(text.includes(phrase), `CV is missing ${phrase}`);
 }
+/* Guards the font path: with --ignore-system-fonts a broken --font-path does not fail
+   the render, it silently substitutes Typst's built-in serif. */
+const fonts = execFileSync("pdffonts", ["dist/cv.pdf"], { encoding: "utf8" });
+assert(
+  /IBMPlexSans/.test(fonts) && !/Libertinus|DejaVu|NewCM/.test(fonts),
+  `CV must embed IBM Plex Sans and no fallback face. pdffonts reported:\n${fonts}`,
+);
 const info = execFileSync("pdfinfo", ["dist/cv.pdf"], { encoding: "utf8" });
 const pages = Number(info.match(/Pages:\s+(\d+)/)?.[1]);
 assert(

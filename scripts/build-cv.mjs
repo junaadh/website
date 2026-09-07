@@ -3,6 +3,7 @@ import { execFileSync, spawnSync } from "node:child_process";
 import { mkdir, readFile, writeFile, access } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { resolveProfile } from "./live-profile.mjs";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const release = JSON.parse(
@@ -43,6 +44,24 @@ if (
     });
   }
 }
+/* Typst renders with --ignore-system-fonts, so an unreadable font directory does not
+   fail — it quietly falls back to a built-in face and produces a CV in the wrong
+   typeface. Fail here instead, where the cause is obvious. */
+const fontPath = path.join(root, "assets/fonts");
+try {
+  await access(path.join(fontPath, "IBMPlexSans-Regular.ttf"));
+} catch {
+  throw new Error(`No IBM Plex Sans in ${fontPath}; the CV would render in the wrong typeface`);
+}
+/* Typst reads this file, not profile.json, so a build can render from the
+   published config without mutating a tracked file. Gitignored. */
+const { profile, source } = await resolveProfile(root);
+await writeFile(
+  path.join(root, "src/data/profile.build.json"),
+  JSON.stringify(profile, null, 2) + "\n",
+);
+console.log(`Rendering the CV from the ${source} profile.`);
+
 // A failed render must stop the site build: never deploy yesterday's CV.
 execFileSync(
   compiler,
@@ -52,31 +71,10 @@ execFileSync(
     root,
     "--ignore-system-fonts",
     "--font-path",
-    path.join(root, "public/fonts"),
+    path.join(root, "assets/fonts"),
     path.join(root, "cv/resume.typ"),
     path.join(root, "public/cv.pdf"),
   ],
   { stdio: "inherit" },
 );
-const p = JSON.parse(
-  await readFile(path.join(root, "src/data/profile.json"), "utf8"),
-);
-const markdown =
-  [
-    `# ${p.fullName}\n\n${p.title} · Systems & Full Stack\n\n${p.location} · ${p.phone} · [${p.email}](mailto:${p.email})\n\n[Portfolio](${p.website}) · [GitHub](${p.github})\n\n${p.summary}`,
-    `## Experience\n\n${p.experience.map((j) => `### ${j.company} — ${j.role}\n\n${j.period} · ${j.location}\n\n${j.bullets.map((b) => `- ${b}`).join("\n")}`).join("\n\n")}`,
-    `## Technical skills\n\n${p.skills.map((s) => `- **${s.name}:** ${s.items.join(", ")}`).join("\n")}`,
-    `## Projects\n\n${p.projects
-      .filter((p) => p.cv)
-      .map(
-        (p) =>
-          `### [${p.name}](${p.url})\n\n${p.bullets.map((b) => `- ${b}`).join("\n")}`,
-      )
-      .join("\n\n")}`,
-    `## Education\n\n${p.education.map((e) => `### ${e.institution}\n\n${e.period}\n\n${e.qualification}\n\n${e.details}`).join("\n\n")}`,
-    `## Languages\n\n${p.languages.join(", ")}`,
-  ].join("\n\n") + "\n";
-await writeFile(path.join(root, "public/cv.md"), markdown);
-console.log(
-  "Generated public/cv.pdf and public/cv.md from src/data/profile.json",
-);
+console.log("Generated public/cv.pdf from cv/resume.typ");

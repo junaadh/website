@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import profile from "../data/profile.json";
+import { profile } from "../config";
 import { copyText } from "./copy-text";
 import { fuzzy, segments } from "./fuzzy";
 

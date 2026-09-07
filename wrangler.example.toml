@@ -1,0 +1,71 @@
+# Copy to wrangler.toml once the resources below exist, then fill in the real
+# ids. Kept as an example on purpose: a wrangler.toml carrying placeholder ids
+# fails binding resolution and would break the live Pages deployment.
+#
+#   bunx wrangler kv namespace create CONFIG
+#   bunx wrangler d1 create portfolio-auth
+#   bunx wrangler r2 bucket create portfolio-assets
+#
+# Bindings can equally be set in the Pages dashboard
+# (Settings -> Functions -> Bindings); the Functions read them the same way.
+
+name = "website"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-09-01"
+
+# Published site config: the versioned blob plus the pointer it hangs off.
+[[kv_namespaces]]
+binding = "CONFIG"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+
+# Phase 2: passkey credentials, TOTP secret, sessions, bootstrap state.
+# [[d1_databases]]
+# binding = "AUTH"
+# database_name = "portfolio-auth"
+# database_id = "REPLACE_WITH_D1_DATABASE_ID"
+
+# Rendered cv.pdf, uploaded by CI (functions/cv.pdf.ts serves it).
+# [[r2_buckets]]
+# binding = "MEDIA"
+# bucket_name = "portfolio-assets"
+
+# Secrets — set with `bunx wrangler pages secret put <NAME> --project-name=website`
+#
+#   BOOTSTRAP_JWT_SECRET  required. Signs the one-time bootstrap token.
+#
+#   GITHUB_CV_TOKEN       "Rebuild CV". Fine-grained PAT:
+#                           Resource owner    you
+#                           Repository access Only select repositories -> website
+#                           Repository perms  Actions: Read and write
+#                           Everything else   No access
+#                         That is the whole grant: it can start workflows in one
+#                         repo and read nothing else. Needed because
+#                         workflow_dispatch requires auth, and the alternative
+#                         (a deploy hook) redeploys the entire site.
+#
+#   GITHUB_STATS_TOKEN    /gh/stats.svg. Fine-grained PAT:
+#                           Resource owner    you
+#                           Repository access All repositories
+#                           Repository perms  Metadata: Read-only   <- only this
+#                           Account perms     none
+#                         Metadata read is the minimum fine-grained permission
+#                         and is what lets private repos count toward commits,
+#                         stars and language totals. It grants repo names,
+#                         languages and stars — and explicitly NOT code,
+#                         issues, PRs, Actions, secrets or settings.
+#                         Repository names are never rendered: the Stats type
+#                         carries only aggregates, so no name can reach the SVG.
+#
+#                         For a public-only card, set repository access to
+#                         "Public repositories" instead — or keep the broad
+#                         token and set GITHUB_STATS_PRIVATE = "false".
+#
+#   GITHUB_STATS_PRIVATE  optional, "false" to exclude private repositories from
+#                         the card regardless of what the token can see.
+#
+#                         Keep the two tokens separate: neither can do the
+#                         other's job if one leaks.
+#
+#   GITHUB_REPO           optional. The owner is read from the profile's GitHub
+#                         URL; this only overrides the repo name
+#                         (default "<owner>/website").

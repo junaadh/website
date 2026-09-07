@@ -1,0 +1,67 @@
+name: Render CV
+
+# Triggered by the admin panel (/api/cv/rebuild). Renders the PDF from the
+# published config and pushes it to R2 — nothing else. No site build, no
+# deployment: the running site is untouched, functions/cv.pdf.ts simply starts
+# serving the newer object.
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: Why the render was requested
+        type: string
+        default: manual
+
+permissions:
+  contents: read
+
+concurrency:
+  group: render-cv
+  cancel-in-progress: true
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # scripts/build-cv.mjs uses only Node builtins and the Typst CLI, so the
+      # dependency install the full build needs is skipped entirely here.
+      - uses: typst-community/setup-typst@v5
+        with:
+          typst-version: 0.14.2
+
+      - name: Render from the published profile
+        run: node scripts/build-cv.mjs
+        env:
+          SITE_CONFIG_URL: https://junaadh.dev/api/config
+
+      - name: Verify the PDF before publishing it
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y poppler-utils
+          pdffonts public/cv.pdf
+          pdffonts public/cv.pdf | grep -q IBMPlexSans \
+            || { echo "::error::CV is not embedding IBM Plex Sans"; exit 1; }
+          pdffonts public/cv.pdf | grep -Eq 'Libertinus|DejaVu|NewCM' \
+            && { echo "::error::CV fell back to a built-in Typst face"; exit 1; }
+          pages=$(pdfinfo public/cv.pdf | awk '/^Pages:/{print $2}')
+          [ "$pages" -ge 1 ] && [ "$pages" -le 2 ] \
+            || { echo "::error::Expected 1-2 pages, got $pages"; exit 1; }
+          pdftotext -layout public/cv.pdf - | head -5
+
+      - name: Publish to R2
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: r2 object put portfolio-assets/cv.pdf --file=public/cv.pdf --content-type=application/pdf --remote
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: junaadh-cv
+          path: public/cv.pdf
+          if-no-files-found: error

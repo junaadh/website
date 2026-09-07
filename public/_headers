@@ -1,8 +1,11 @@
+# Authenticated surface: keep it out of indexes at the HTTP level too.
+/admin*
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: no-store
+
 /cv.pdf
   Cache-Control: public, max-age=0, must-revalidate
   Content-Type: application/pdf
-/cv.md
-  Cache-Control: public, max-age=0, must-revalidate
 
 /social.png
   Cache-Control: public, max-age=0, must-revalidate
