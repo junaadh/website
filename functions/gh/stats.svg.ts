@@ -40,8 +40,11 @@ export const onRequestGet: PagesFunction<StatsEnv> = async ({ request, env }) =>
     login = new URL(profile.github).pathname.replace(/^\/|\/$/g, "");
   }
   login = login.slice(0, 39);
+  /* Errors must never be cached: a transient GitHub failure would otherwise
+     leave a broken image in the README until the entry expired. */
+  const uncached = { "cache-control": "no-store" };
   if (!/^[A-Za-z0-9-]+$/.test(login))
-    return new Response("bad user", { status: 400 });
+    return new Response("bad user", { status: 400, headers: uncached });
 
   const theme = url.searchParams.get("theme") === "light" ? "light" : "dark";
   const includePrivate = env.GITHUB_STATS_PRIVATE !== "false";
@@ -60,6 +63,7 @@ export const onRequestGet: PagesFunction<StatsEnv> = async ({ request, env }) =>
   if (!env.GITHUB_STATS_TOKEN)
     return new Response("GITHUB_STATS_TOKEN is not configured", {
       status: 503,
+      headers: uncached,
     });
 
   try {
@@ -70,6 +74,7 @@ export const onRequestGet: PagesFunction<StatsEnv> = async ({ request, env }) =>
   } catch (error) {
     return new Response(`could not render: ${(error as Error).message}`, {
       status: 502,
+      headers: uncached,
     });
   }
 };

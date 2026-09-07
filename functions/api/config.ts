@@ -17,11 +17,18 @@ const seed = () => ({
 /** Readable without a session: it is exactly what the public page already shows. */
 export const onRequestGet: PagesFunction<AuthEnv> = async ({ env }) => {
   const published = await readConfig(env);
-  return json({
-    version: published?.version ?? 0,
-    published: !!published,
-    config: published?.config ?? seed(),
-  });
+  return json(
+    {
+      version: published?.version ?? 0,
+      published: !!published,
+      config: published?.config ?? seed(),
+    },
+    200,
+    /* Never cached. The CV build reads this to decide what to render, so a
+       stale copy would silently produce a PDF of the previous version — and the
+       panel must not open on content that is already out of date. */
+    { "cache-control": "no-store" },
+  );
 };
 
 export const onRequestPut: PagesFunction<AuthEnv> = async ({ request, env }) => {
@@ -34,5 +41,7 @@ export const onRequestPut: PagesFunction<AuthEnv> = async ({ request, env }) => 
   // Reject at the door, so nothing invalid can ever reach a render path.
   if (!result.ok) return json({ error: "invalid config", errors: result.errors }, 422);
 
-  return json({ version: await writeConfig(env, result.config), published: true });
+  return json({ version: await writeConfig(env, result.config), published: true }, 200, {
+    "cache-control": "no-store",
+  });
 };

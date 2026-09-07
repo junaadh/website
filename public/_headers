@@ -1,3 +1,17 @@
+# Vite fingerprints these filenames, so the URL changes whenever the bytes do.
+# Pages defaults them to max-age=0, which costs a revalidation per asset per visit.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Content-hashed social cards; the icons beside them change very rarely.
+/generated/*
+  Cache-Control: public, max-age=604800
+
+# Stable filenames, so long-lived but deliberately NOT immutable: replacing the
+# font would otherwise be unreachable for anyone who already cached it.
+/fonts/*
+  Cache-Control: public, max-age=2592000
+
 # Authenticated surface: keep it out of indexes at the HTTP level too.
 /admin*
   X-Robots-Tag: noindex, nofollow
