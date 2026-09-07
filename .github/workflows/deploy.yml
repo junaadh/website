@@ -25,11 +25,11 @@ jobs:
     env:
       CF_CONFIGURED: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.4.2
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
       - name: Install dependencies
@@ -60,14 +60,14 @@ jobs:
           node scripts/check-build.mjs
           node scripts/check-social.mjs
       - name: Upload deployable site
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: portfolio-${{ github.sha }}
           path: dist
           if-no-files-found: error
           retention-days: 14
       - name: Upload CV
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: junaadh-cv
           path: public/cv.pdf
@@ -84,10 +84,11 @@ jobs:
           github.ref == 'refs/heads/master' &&
           github.event_name != 'pull_request' &&
           env.CF_CONFIGURED == 'true'
-        uses: cloudflare/wrangler-action@v3
+        uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          packageManager: npm
           command: r2 object put portfolio-assets/cv.pdf --file=public/cv.pdf --content-type=application/pdf --remote
 
   deploy:
@@ -102,14 +103,15 @@ jobs:
       # Required before download-artifact: checkout cleans the workspace, and
       # `wrangler pages deploy` compiles functions/ from the working directory —
       # the artifact holds only dist, so without this every Function 404s.
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
         with:
           name: portfolio-${{ github.sha }}
           path: dist
       - name: Deploy site and freshly rendered CV to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3
+        uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          packageManager: npm
           command: pages deploy dist --project-name=website --branch=master
