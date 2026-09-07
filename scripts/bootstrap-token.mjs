@@ -28,7 +28,9 @@ function secretFromDevVars() {
   }
 }
 
-const secret = process.env.BOOTSTRAP_JWT_SECRET || secretFromDevVars();
+const fromEnv = process.env.BOOTSTRAP_JWT_SECRET;
+const secret = fromEnv || secretFromDevVars();
+const source = fromEnv ? "BOOTSTRAP_JWT_SECRET" : ".dev.vars";
 if (!secret) {
   console.error(
     "No BOOTSTRAP_JWT_SECRET. Export it, or put it in .dev.vars for local use.",
@@ -39,6 +41,23 @@ if (!secret) {
 // The verifier refuses anything longer-lived than an hour, signed or not.
 const ttl = Math.min(Number(arg("ttl", 300)), 3600);
 const url = arg("url", "http://localhost:8788").replace(/\/$/, "");
+
+/* Signing a remote request with the local development secret produces a token
+   that is well-formed and rejected — an "invalid token" that looks like a
+   deployment problem but is really a typo in the variable name. Refuse it. */
+const local = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(new URL(url).hostname);
+if (!local && source === ".dev.vars") {
+  console.error(`
+  Refusing to sign a token for ${url} with the secret from .dev.vars.
+  That is the local development secret; the deployment will reject it.
+
+  Pass the production secret instead — note the variable name:
+
+    BOOTSTRAP_JWT_SECRET='...' node scripts/bootstrap-token.mjs --url=${url} --run
+`);
+  process.exit(1);
+}
+console.error(`  secret source: ${source}${local ? "" : "  (production)"}`);
 
 const b64 = (value) => Buffer.from(JSON.stringify(value)).toString("base64url");
 const body = `${b64({ alg: "HS256", typ: "JWT" })}.${b64({

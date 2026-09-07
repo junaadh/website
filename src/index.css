@@ -52,7 +52,7 @@
   --fg: #272c23;
   --secondary: #46503c;
   --muted: #5d6656;
-  --faint: #647451;
+  --faint: #586646;
   --accent: #496628;
   --accent-hover: #3b5620;
   --on-accent: #f1f3e9;
@@ -95,6 +95,10 @@
   --breakpoint-md: 761px;
   --breakpoint-lg: 1051px;
   --breakpoint-wide: 1500px;
+
+  /* 450, not 400: Inter is optically light next to the Helvetica fallback, and
+     the variable font makes the half-step a real instance rather than a synth. */
+  --font-weight-normal: 450;
 
   --font-sans: Inter, "Helvetica Neue", Arial, sans-serif;
   --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
@@ -232,8 +236,10 @@
   html {
     font-family: var(--font-sans);
     font-synthesis: none;
-    text-rendering: optimizeLegibility;
-    -webkit-font-smoothing: antialiased;
+    /* No -webkit-font-smoothing: antialiased. It thins strokes on macOS, which
+       is exactly wrong for light-on-dark text at 13-15px; the default renders
+       the same weights noticeably more solid. */
+    font-weight: 450;
     scroll-behavior: smooth;
     scroll-padding-top: 24px;
     color: var(--fg);
