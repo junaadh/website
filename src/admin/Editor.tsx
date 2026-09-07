@@ -14,6 +14,7 @@ const flagCopy: Record<keyof Flags, [string, string]> = {
   sectionNav: ["Section rail", "Dot navigation on the right, desktop only."],
   commandPalette: ["Command palette", "⌘K, and the hint chip in the masthead."],
   byteInspector: ["Byte inspector", "The interactive hero panel."],
+  terminal: ["Terminal overlay", "The ~ key renders `curl junaadh.dev` in-page."],
 };
 
 const sectionNames: Record<string, string> = {
@@ -260,6 +261,14 @@ export default function Editor({
           <Button onClick={onInvalidateStats} disabled={busy}>
             Refresh GitHub card
           </Button>
+          <a
+            href="/api/docs"
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-2 border border-visual-line px-4 py-2 text-[13px] text-secondary transition-colors duration-200 hover:border-strong-line hover:text-accent"
+          >
+            API
+          </a>
           <Button onClick={onRevert} disabled={busy || version < 2} variant="danger">
             Revert
           </Button>

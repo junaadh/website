@@ -108,11 +108,11 @@ export const onRequest: PagesFunction<Env> = async (context) => {
 
   /* Shells get the résumé as ANSI text. Uses the published profile when there
      is one, else the copy built into the deployment. */
-  const terminalPath = url.pathname === "/" || url.pathname === "/cv.txt";
-  if (
-    (terminalPath || url.pathname === "/whoami") &&
-    wantsTerminal(context.request)
-  ) {
+  /* `/` is content-negotiated so browsers still get the page, but /cv.txt and
+     /whoami are explicit text URLs — they serve text to anyone who asks,
+     including the site's own terminal overlay. */
+  const explicitText = url.pathname === "/cv.txt" || url.pathname === "/whoami";
+  if (explicitText || (url.pathname === "/" && wantsTerminal(context.request))) {
     const live = await readConfig(context.env);
     const profile = live?.config.profile ?? (profileSeed as SeedProfile);
     return new Response(

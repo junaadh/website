@@ -34,3 +34,6 @@ public/generated/
 
 # Written by build-cv from the committed or published profile
 src/data/profile.build.json
+
+# Generated with the rest of the site
+public/.well-known/

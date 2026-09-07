@@ -8,7 +8,17 @@ import useReveal from "./components/use-reveal";
 import SlidingControls from "./components/sliding-controls";
 import SectionNav from "./components/section-nav";
 import CommandPalette from "./components/command-palette";
+import TerminalOverlay from "./components/terminal-overlay";
 import { copyDeferred, copyText } from "./components/copy-text";
+import {
+  bases,
+  decode,
+  fromBytes,
+  parseHex,
+  render,
+  toCells,
+} from "../shared/bytes";
+import type { Base } from "../shared/bytes";
 
 const filters = ["All work", "Systems", "Full stack", "Native"];
 // Bypass copies stored under the previous one-year immutable cache policy.
@@ -145,36 +155,6 @@ function StatusDot() {
   );
 }
 
-const encoder = new TextEncoder();
-type Cell = { byte: number; char: string; lead: boolean; last: boolean };
-
-/**
- * Splits a string into UTF-8 bytes while remembering which character each byte
- * came from, so multi-byte sequences can be shown as one run.
- */
-function toCells(value: string): Cell[] {
-  const cells: Cell[] = [];
-  for (const char of value) {
-    const bytes = encoder.encode(char);
-    for (let i = 0; i < bytes.length; i++)
-      cells.push({
-        byte: bytes[i],
-        char,
-        lead: i === 0,
-        last: i === bytes.length - 1,
-      });
-  }
-  return cells;
-}
-
-const bases = { hex: 16, dec: 10, bin: 2 } as const;
-const widths = { hex: 2, dec: 3, bin: 8 } as const;
-const baseLabels = { hex: "BASE 16", dec: "BASE 10", bin: "BASE 2" } as const;
-type Format = keyof typeof bases;
-
-const render = (byte: number, format: Format) =>
-  byte.toString(bases[format]).padStart(widths[format], "0");
-
 /** A /b/<id> permalink; the edge injects the shared string into the document. */
 function seededValue() {
   if (typeof document === "undefined") return "hello, world";
@@ -192,9 +172,18 @@ function ByteInspector() {
   const [value, setValue] = useState(seededValue);
   const [shared, setShared] = useState("");
   const [fallback, setFallback] = useState("");
-  const [format, setFormat] = useState<Format>("hex");
+  const [format, setFormat] = useState<Base>("hex");
   const [hovered, setHovered] = useState<number | null>(null);
-  const cells = useMemo(() => toCells(value), [value]);
+  const [decoding, setDecoding] = useState(false);
+  const cells = useMemo(
+    () => (decoding ? fromBytes(parseHex(value)) : toCells(value)),
+    [value, decoding],
+  );
+  // What the pasted bytes actually say, for the footer.
+  const decoded = useMemo(
+    () => (decoding ? decode(cells) : ""),
+    [decoding, cells],
+  );
   const length = Math.max(16, Math.ceil(cells.length / 8) * 8);
   const active = hovered === null ? null : (cells[hovered] ?? null);
 
@@ -205,20 +194,39 @@ function ByteInspector() {
           <i className="mr-[7px] inline-block size-[5px] bg-accent" /> MEMORY
           VIEW
         </span>
-        <span>
-          UTF-8 / {baseLabels[format]} /{" "}
-          <span className="text-accent">{cells.length}</span> B
+        <span className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              // Hand the other mode something it can actually chew on.
+              setValue(
+                decoding
+                  ? decoded || "hello, world"
+                  : cells.map((cell) => render(cell.byte, "hex")).join(" "),
+              );
+              setDecoding(!decoding);
+              setHovered(null);
+            }}
+            className="border border-visual-line px-[5px] py-[1px] text-[9px] tracking-[1px] text-muted uppercase transition-colors duration-200 hover:border-strong-line hover:text-accent active:text-accent"
+            aria-label={decoding ? "Switch to encoding text" : "Switch to decoding bytes"}
+          >
+            {decoding ? "decode" : "encode"}
+          </button>
+          <span>
+            UTF-8 · <span className="text-accent">{cells.length}</span> B
+          </span>
         </span>
       </div>
       <div className="mx-5 mt-[25px] mb-[23px] flex items-center gap-[14px] text-[14px]">
         <label htmlFor="memory-input" className="whitespace-nowrap text-accent">
-          &gt; write
+          &gt; {decoding ? "read" : "write"}
         </label>
         <input
           id="memory-input"
           value={value}
           onChange={(e) => setValue(e.target.value)}
-          maxLength={24}
+          maxLength={decoding ? 96 : 24}
+          placeholder={decoding ? "68 65 6c 6c 6f" : ""}
           spellCheck={false}
           autoComplete="off"
           aria-describedby="memory-hint"
@@ -297,6 +305,14 @@ function ByteInspector() {
               0x{render(active.byte, "hex")} · {active.byte} · 0b
               {render(active.byte, "bin")}
             </>
+          ) : decoding ? (
+            decoded ? (
+              <>
+                <span className="text-accent">decodes to</span> “{decoded}”
+              </>
+            ) : (
+              "Paste hex. See what it says."
+            )
           ) : (
             "Type something. See the bytes."
           )}
@@ -340,7 +356,7 @@ function ByteInspector() {
           label="Byte display format"
           variant="outline"
         >
-          {(Object.keys(bases) as Format[]).map((f) => (
+          {(Object.keys(bases) as Base[]).map((f) => (
             <button
               type="button"
               key={f}
@@ -924,6 +940,7 @@ function App() {
           </div>
         </section>
       </main>
+      {flags.terminal && <TerminalOverlay />}
       {flags.sectionNav && <SectionNav />}
       {flags.commandPalette && <CommandPalette />}
       <ThemeSwitcher />

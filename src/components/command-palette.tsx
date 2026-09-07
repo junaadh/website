@@ -33,6 +33,14 @@ export default function CommandPalette() {
   const actions = useMemo<Action[]>(
     () => [
       { id: "top", label: "Back to top", hint: "jump", run: go("main") },
+      {
+        id: "terminal",
+        label: "Open terminal view",
+        hint: "view",
+        keywords: "curl ansi shell console",
+        run: () =>
+          window.dispatchEvent(new Event("portfolio-terminal-open")),
+      },
       { id: "work", label: "Selected work", hint: "jump", run: go("work") },
       {
         id: "experience",

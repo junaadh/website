@@ -244,6 +244,20 @@ a.home:hover{background:var(--accent-hover)}
 </html>
 `,
 );
+/* RFC 9116. Expires is mandatory and must be in the future, so it is generated
+   with the rest of the site rather than hand-edited into staleness. */
+const expires = new Date(Date.now() + 365 * 24 * 3600 * 1000).toISOString();
+await mkdir(path.join(root, "public/.well-known"), { recursive: true });
+await writeFile(
+  path.join(root, "public/.well-known/security.txt"),
+  [
+    `Contact: mailto:${p.email}`,
+    `Expires: ${expires.slice(0, 19)}Z`,
+    "Preferred-Languages: en",
+    `Canonical: ${p.website}/.well-known/security.txt`,
+    "",
+  ].join("\n"),
+);
 await writeFile(
   path.join(root, "public/robots.txt"),
   `User-agent: *\nAllow: /\nSitemap: ${p.website}/sitemap.xml\n`,

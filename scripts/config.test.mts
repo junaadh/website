@@ -95,3 +95,26 @@ test("profile.github must be a bare GitHub profile URL", () => {
   ok.profile.github = "https://github.com/junaadh";
   assert.equal(validate(ok).ok, true);
 });
+
+test("a config published before a flag existed still validates", () => {
+  const config = live();
+  // What production is serving right now: no `terminal` key at all.
+  delete config.flags.terminal;
+  const result = validate(config);
+  assert.equal(
+    result.ok,
+    true,
+    result.ok ? "" : `older blob rejected:\n${result.errors.join("\n")}`,
+  );
+  if (result.ok)
+    assert.equal(
+      result.config.flags.terminal,
+      true,
+      "missing flags should take their default, not become undefined",
+    );
+
+  // Present but wrong type is still an error.
+  const wrong = live();
+  (wrong.flags as Record<string, unknown>).terminal = "yes";
+  assert.equal(validate(wrong).ok, false);
+});

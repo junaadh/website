@@ -110,6 +110,7 @@ export type Flags = {
   sectionNav: boolean;
   commandPalette: boolean;
   byteInspector: boolean;
+  terminal: boolean;
 };
 
 export const defaultFlags: Flags = {
@@ -117,6 +118,7 @@ export const defaultFlags: Flags = {
   sectionNav: true,
   commandPalette: true,
   byteInspector: true,
+  terminal: true,
 };
 
 export type SiteConfig = {
@@ -292,10 +294,17 @@ export function validate(value: unknown): Validation {
   const flags = object(it.flags);
   if (!flags) fail(errors, "flags", "an object");
   else
+    /* Only what is present is checked. Flags are added over time, and a blob
+       published before one existed must keep working — rejecting it would drop
+       the whole site back to built-in content over a missing boolean. */
     for (const key of Object.keys(defaultFlags) as (keyof Flags)[])
-      bool(errors, flags[key], `flags.${key}`);
+      if (flags[key] !== undefined) bool(errors, flags[key], `flags.${key}`);
 
-  return errors.length
-    ? { ok: false, errors }
-    : { ok: true, config: it as unknown as SiteConfig };
+  if (errors.length) return { ok: false, errors };
+  const config = it as unknown as SiteConfig;
+  // Unknown-to-this-build flags are dropped; missing ones take the default.
+  return {
+    ok: true,
+    config: { ...config, flags: { ...defaultFlags, ...config.flags } },
+  };
 }
