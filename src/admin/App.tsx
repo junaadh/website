@@ -60,7 +60,11 @@ export default function App() {
   };
 
   if (!session)
-    return <Shell><p className="text-[13px] text-muted">Loading…</p></Shell>;
+    return (
+      <Shell centred>
+        <p className="text-center text-[13px] text-muted">Loading…</p>
+      </Shell>
+    );
 
   if (session.authenticated && loaded)
     return (
@@ -110,8 +114,8 @@ export default function App() {
     );
 
   return (
-    <Shell>
-      <div className="mx-auto flex w-full max-w-[520px] flex-col gap-5">
+    <Shell centred>
+      <div className="flex flex-col gap-4">
         {error && (
           <Notice kind="error">
             <strong>{error.message}</strong>
@@ -128,23 +132,34 @@ export default function App() {
   );
 }
 
+/**
+ * Two shapes: signed out is a single centred card with no chrome at all, and
+ * signed in is the editor under a bare sign-out control. Nothing else — this
+ * screen has one visitor who already knows where they are.
+ */
 function Shell({
   children,
   right,
+  centred = false,
 }: {
   children: React.ReactNode;
   right?: React.ReactNode;
+  centred?: boolean;
 }) {
+  if (centred)
+    return (
+      <div className="grid min-h-svh place-items-center bg-bg px-6">
+        <main className="w-full max-w-[420px]">{children}</main>
+      </div>
+    );
   return (
-    <div className="min-h-screen bg-bg">
-      <header className="mx-auto flex w-[min(980px,calc(100%-48px))] items-center justify-between py-7">
-        <a href="/" className="flex items-center gap-[10px]">
-          <img src="/favicon.svg" width="32" height="32" alt="" className="size-8" />
-          <span className="font-mono text-[13px] text-muted">admin</span>
-        </a>
+    <div className="min-h-svh bg-bg">
+      <header className="mx-auto flex w-[min(980px,calc(100%-48px))] justify-end py-5">
         {right}
       </header>
-      <main className="mx-auto w-[min(980px,calc(100%-48px))] pb-24">{children}</main>
+      <main className="mx-auto w-[min(980px,calc(100%-48px))] pb-24">
+        {children}
+      </main>
     </div>
   );
 }

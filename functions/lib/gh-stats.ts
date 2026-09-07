@@ -168,13 +168,22 @@ export function renderCard(stats: Stats, theme: "dark" | "light") {
     })
     .join("");
 
-  // One bar, split proportionally: compact and needs no legend geometry.
-  let offset = 28;
+  /* One bar, split proportionally. Boundaries are rounded to whole pixels and
+     each segment starts exactly where the last ended: fractional edges get
+     anti-aliased, and on a 7px bar that blur reads as segments sitting at
+     different heights. Integer tiling also removes the sub-pixel overlaps that
+     accumulated rounding produced. */
+  const barX = 28;
+  const barWidth = width - 56;
+  let cursor = barX;
+  let covered = 0;
   const bar = stats.languages
     .map((language) => {
-      const segment = Math.max(2, language.share * (width - 56));
-      const rect = `<rect x="${offset.toFixed(1)}" y="150" width="${segment.toFixed(1)}" height="7" fill="${language.colour}"/>`;
-      offset += segment;
+      covered += language.share;
+      const end = Math.round(barX + Math.min(1, covered) * barWidth);
+      const segment = Math.max(2, end - cursor);
+      const rect = `<rect x="${cursor}" y="150" width="${segment}" height="7" fill="${language.colour}"/>`;
+      cursor += segment;
       return rect;
     })
     .join("");
@@ -193,6 +202,6 @@ export function renderCard(stats: Stats, theme: "dark" | "light") {
 <text x="28" y="58" fill="${c.faint}" font-size="11">@${escape(stats.login)} · ${compact(stats.followers)} followers${stats.privateRepos ? ` · incl. ${stats.privateRepos} private` : ""}</text>
 ${stat}
 <text x="28" y="140" fill="${c.faint}" font-size="10" letter-spacing="1">MOST USED</text>
-${bar}${legend}
+<g shape-rendering="crispEdges">${bar}</g>${legend}
 </g></svg>`;
 }
