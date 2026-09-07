@@ -20,6 +20,10 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
+    # `secrets` is not available in `if:` expressions, only in `env`/`with`.
+    # Mapping it here lets the R2 step below test whether R2 is configured.
+    env:
+      CF_CONFIGURED: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
@@ -79,7 +83,7 @@ jobs:
         if: >-
           github.ref == 'refs/heads/master' &&
           github.event_name != 'pull_request' &&
-          secrets.CLOUDFLARE_API_TOKEN != ''
+          env.CF_CONFIGURED == 'true'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
