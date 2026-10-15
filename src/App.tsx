@@ -481,9 +481,13 @@ function App() {
       >
         Skip to content
       </a>
-      <header className="header-scroll-border sticky top-0 z-40 border-b border-line/30 bg-bg/80 backdrop-blur-xl backdrop-saturate-150">
+      <header className="sticky top-0 z-40 pt-[env(safe-area-inset-top)]">
         <div
-          className={`${shell} flex items-center justify-between py-[22px] max-md:py-[18px]`}
+          aria-hidden="true"
+          className="header-glass header-scroll-border border-b border-line/30 bg-bg/80 backdrop-blur-xl backdrop-saturate-150"
+        />
+        <div
+          className={`${shell} relative flex items-center justify-between py-[22px] max-md:py-[18px]`}
         >
           <a
             className="flex items-center gap-[10px] font-mono text-[34px] leading-none font-bold"

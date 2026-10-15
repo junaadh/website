@@ -268,7 +268,7 @@
     /* Let the variable font tune stroke contrast and aperture per size. */
     font-optical-sizing: auto;
     scroll-behavior: smooth;
-    scroll-padding-top: 96px;
+    scroll-padding-top: calc(96px + env(safe-area-inset-top));
     color: var(--fg);
     /* Three asymmetric radial sources.  Their positions are the @property
        custom properties above, which animate smoothly in hg-flow below.
@@ -307,7 +307,7 @@
   }
   #root {
     width: 100%;
-    overflow: clip;
+    overflow-x: clip;
   }
   h1,
   h2,
@@ -352,6 +352,18 @@
    the chrome. At rest (scroll = 0) the border is invisible and the background
    is transparent; by 100 px of scroll both have eased to their full values.
    Falls back gracefully to the static classes on Safari / Firefox. */
+/* Safari 26 tints the status bar by sampling the fixed/sticky element at the
+   top edge, and treats a backdrop-filter there as "not one solid colour" —
+   so the header itself stays unpainted. Its glass lives on an absolute child
+   (which the sampler ignores) that bleeds up past the viewport, so the same
+   blurred material runs under the status bar instead of stopping below it. */
+@utility header-glass {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  top: -120px;
+  pointer-events: none;
+}
 @utility header-scroll-border {
   @supports (animation-timeline: scroll()) {
     @media (prefers-reduced-motion: no-preference) {
