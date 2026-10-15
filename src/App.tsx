@@ -26,9 +26,9 @@ const cvUrl = "/cv.pdf?v=typst-1";
 
 const shell =
   "mx-auto w-[min(1200px,calc(100%-112px))] max-lg:w-[calc(100%-64px)] max-md:w-[calc(100%-40px)]";
-const section = "pt-[100px] max-md:pt-[65px]";
+const section = "pt-[120px] max-md:pt-[80px]";
 const heading2 =
-  "text-[40px] leading-[1.2] tracking-[-1.6px] mt-[17px] max-md:text-[32px] max-md:tracking-[-1px]";
+  "font-[Georgia,serif] italic font-normal text-[44px] leading-[1.15] tracking-[-0.02em] mt-[17px] max-md:text-[34px]";
 // useReveal flips data-reveal as each element scrolls in; see use-reveal.ts.
 const reveal =
   "data-[reveal=pending]:opacity-0 data-[reveal=pending]:translate-y-5 data-[reveal=visible]:animate-arrive";
@@ -66,7 +66,10 @@ function TextLink({
       href={href}
       {...(external ? { target: "_blank", rel: "noreferrer" } : {})}
     >
-      {children} <ArrowIcon className="size-[18px]" />
+      {children}
+      <span className="transition-transform duration-200 ease-[var(--ease-spring)] motion-safe:group-hover:translate-x-[4px] motion-safe:group-focus-visible:translate-x-[4px]">
+        <ArrowIcon className="size-[18px]" />
+      </span>
     </a>
   );
 }
@@ -77,7 +80,7 @@ function Tags({ items }: { items: string[] }) {
       {items.map((tag) => (
         <span
           key={tag}
-          className="border border-visual-line px-2 py-[6px] font-mono text-[10px] text-secondary transition-[color,background-color,border-color] duration-[180ms] hover:border-strong-line hover:text-accent active:border-strong-line active:text-accent"
+          className="rounded-full border border-visual-line px-[10px] py-[5px] font-mono text-[10px] text-secondary transition-[color,background-color,border-color] duration-[180ms] hover:border-strong-line hover:text-accent active:border-strong-line active:text-accent"
         >
           {tag}
         </span>
@@ -94,7 +97,7 @@ function PaletteHint() {
     <button
       type="button"
       onClick={() => window.dispatchEvent(new Event("portfolio-command-open"))}
-      className="flex items-center gap-1 border border-visual-line px-[6px] py-[3px] text-[10px] tracking-normal text-muted transition-colors duration-200 hover:border-strong-line hover:text-accent active:border-strong-line active:text-accent max-sm:hidden"
+      className="flex items-center gap-1 rounded border border-visual-line px-[6px] py-[3px] text-[10px] tracking-normal text-muted transition-colors duration-200 hover:border-strong-line hover:text-accent active:border-strong-line active:text-accent max-sm:hidden"
       aria-label="Open the command palette"
     >
       <span aria-hidden="true">{mac ? "⌘" : "Ctrl"}</span>
@@ -188,7 +191,7 @@ function ByteInspector() {
   const active = hovered === null ? null : (cells[hovered] ?? null);
 
   return (
-    <div className="border border-visual-line bg-[linear-gradient(140deg,var(--visual-bg),var(--visual-deep))] font-mono shadow-[0_0_70px_#b3ec5c06]">
+    <div className="border border-visual-line bg-[linear-gradient(140deg,var(--visual-bg),var(--visual-deep))] font-mono shadow-[0_0_60px_#b3ec5c14]">
       <div className="flex justify-between border-b border-visual-line p-[17px] text-[10px] text-muted">
         <span>
           <i className="mr-[7px] inline-block size-[5px] bg-accent" /> MEMORY
@@ -478,28 +481,39 @@ function App() {
       >
         Skip to content
       </a>
-      <div
-        className={`${shell} flex items-center justify-between py-[27px] max-md:py-5`}
-      >
-        <a
-          className="flex items-center gap-[10px] font-mono text-[34px] leading-none font-bold"
-          href="#"
-          aria-label="Junad, home"
+      <header className="header-scroll-border sticky top-0 z-40 border-b border-line/30 bg-bg/80 backdrop-blur-xl backdrop-saturate-150">
+        <div
+          className={`${shell} flex items-center justify-between py-[22px] max-md:py-[18px]`}
         >
-          <img
-            src="/favicon.svg"
-            width="40"
-            height="40"
-            alt=""
-            className="size-10"
-          />
-          <span className="text-[14px] font-normal max-xs:hidden">junaadh</span>
-        </a>
-        <div className="flex items-center gap-4 font-mono text-[12px] tracking-[1px] text-muted max-md:text-[10px] max-md:tracking-[0.4px] max-sm:text-[9px]">
-          <span>MALDIVES · UTC+05:00</span>
-          {flags.commandPalette && <PaletteHint />}
+          <a
+            className="flex items-center gap-[10px] font-mono text-[34px] leading-none font-bold"
+            href="#"
+            aria-label="Junad, home"
+          >
+            <img
+              src="/favicon.svg"
+              width="40"
+              height="40"
+              alt=""
+              className="size-10"
+            />
+            <span className="text-[14px] font-normal max-xs:hidden">junaadh</span>
+          </a>
+          <nav
+            className="flex items-center gap-7 font-mono text-[11px] tracking-[1px] uppercase text-muted max-md:hidden"
+            aria-label="Site sections"
+          >
+            <a href="#work" className="transition-colors duration-150 hover:text-accent active:text-accent">Work</a>
+            <a href="#experience" className="transition-colors duration-150 hover:text-accent active:text-accent">Exp</a>
+            <a href="#about" className="transition-colors duration-150 hover:text-accent active:text-accent">About</a>
+            <a href="#contact" className="transition-colors duration-150 hover:text-accent active:text-accent">Contact</a>
+          </nav>
+          <div className="flex items-center gap-4 font-mono text-[12px] tracking-[1px] text-muted max-md:text-[10px] max-md:tracking-[0.4px]">
+            <span className="max-sm:hidden">MALDIVES · UTC+05:00</span>
+            {flags.commandPalette && <PaletteHint />}
+          </div>
         </div>
-      </div>
+      </header>
 
       <main id="main">
         <section
@@ -510,25 +524,25 @@ function App() {
             className={`grid items-center gap-[60px] pt-[84px] pb-[72px] wide:py-[100px] max-lg:gap-8 max-md:grid-cols-1 max-md:gap-[45px] max-md:pt-12 max-md:pb-[38px] ${flags.byteInspector ? "grid-cols-[1.15fr_1fr]" : "grid-cols-1"}`}
           >
             <div className="[&>*:nth-child(2)]:[animation-delay:60ms] [&>*:nth-child(3)]:[animation-delay:120ms] [&>*:nth-child(4)]:[animation-delay:180ms] [&>*:nth-child(5)]:[animation-delay:240ms] [&>*]:animate-arrive">
-              <p className="mb-[22px] font-[Georgia,serif] text-[22px] leading-[1.6] tracking-normal text-secondary italic">
+              <p className="mb-[22px] font-[Georgia,serif] text-[24px] leading-[1.5] tracking-normal text-secondary italic">
                 Hi, I'm {profile.commonName}.
               </p>
               <h1
                 id="hero-title"
-                className="text-[clamp(52px,5.4vw,76px)] leading-[1.06] tracking-[-4px] max-lg:text-[56px] max-lg:tracking-[-2.5px] max-md:text-[clamp(46px,10vw,72px)] max-md:tracking-[-2.7px]"
+                className="font-[Georgia,serif] italic font-normal text-[clamp(54px,5.6vw,96px)] leading-[1.05] tracking-[-0.025em] max-lg:text-[66px] max-md:text-[clamp(46px,10vw,72px)]"
               >
                 From the bits.
                 <br />
                 To the <span className="text-accent">browser.</span>
               </h1>
-              <p className="my-[27px] max-w-[430px] text-[17px] leading-[1.75] text-muted max-md:max-w-[480px] max-md:text-[16px]">
+              <p className="my-[27px] max-w-[430px] text-[17px] leading-[1.85] text-muted max-md:max-w-[480px] max-md:text-[16px]">
                 I’m a developer from the Maldives. I build web apps and backend
                 services, and I like getting underneath them to see how things
                 actually work.
               </p>
               <div className="flex items-center gap-7 max-md:gap-5">
                 <a
-                  className="group inline-flex items-center gap-[30px] bg-accent px-[21px] py-4 text-[14px] text-on-accent transition-[background-color,transform,translate] duration-200 hover:bg-accent-hover hover:text-on-accent active:bg-accent-hover motion-safe:hover:-translate-y-0.5 motion-safe:active:translate-y-0 max-md:gap-4"
+                  className="group inline-flex items-center gap-[30px] rounded-full bg-accent px-[24px] py-4 text-[14px] text-on-accent transition-[background-color,transform,translate,scale] duration-200 hover:bg-accent-hover hover:text-on-accent active:bg-accent-hover motion-safe:hover:-translate-y-0.5 motion-safe:active:translate-y-0 motion-safe:active:scale-[0.97] motion-safe:active:[transition-duration:80ms] max-md:gap-4"
                   href="#work"
                 >
                   A few things I’ve built{" "}
@@ -539,12 +553,7 @@ function App() {
                 </TextLink>
               </div>
               <div className="mt-9 flex items-center gap-[7px] text-[12px] text-muted max-md:mt-[27px] max-sm:text-[11px]">
-                <span
-                  className="mr-1 font-mono text-[21px] text-accent"
-                  aria-hidden="true"
-                >
-                  +
-                </span>{" "}
+                <StatusDot />{" "}
                 Currently building at{" "}
                 <a
                   className="group inline-flex items-center gap-[7px] text-secondary"
@@ -615,7 +624,8 @@ function App() {
             data-reveal=""
             className={`mb-9 flex items-end justify-between gap-6 max-md:items-start ${reveal}`}
           >
-            <div>
+            <div className="relative">
+              <span aria-hidden="true" className="pointer-events-none absolute -top-3 -left-1 select-none font-mono text-[clamp(100px,10vw,176px)] font-bold leading-none text-fg/[0.04]">01</span>
               <Eyebrow>01 / SELECTED WORK</Eyebrow>
               <h2 id="work-title" className={heading2}>
                 Things I’ve made.
@@ -674,9 +684,10 @@ function App() {
                 href={project.url}
                 target="_blank"
                 rel="noreferrer"
-                className="group animate-card-arrive border border-line bg-surface transition-[border-color,transform,translate,box-shadow] duration-300 hover:border-strong-line hover:text-inherit hover:shadow-[0_18px_38px_#00000014] active:border-strong-line motion-safe:hover:-translate-y-1 motion-safe:focus-visible:-translate-y-1 motion-safe:active:-translate-y-1"
+                className="group animate-card-arrive overflow-hidden rounded-2xl border border-line bg-surface shadow-[0_2px_8px_#0000000d] transition-[border-color,transform,translate,box-shadow] duration-300 hover:border-strong-line hover:text-inherit hover:shadow-[0_24px_60px_#00000028] active:border-strong-line motion-safe:hover:-translate-y-1 motion-safe:focus-visible:-translate-y-1 motion-safe:active:-translate-y-1"
               >
-                <div className="scroll-parallax relative flex h-[200px] items-center justify-center overflow-hidden border-b border-line bg-visual-bg bg-[radial-gradient(var(--dot-grid)_0.7px,transparent_0.7px)] bg-[size:16px_16px] max-md:h-[170px] max-sm:h-[200px]">
+                <div className="scroll-parallax relative flex h-[220px] items-center justify-center overflow-hidden border-b border-line bg-visual-bg bg-[radial-gradient(var(--dot-grid)_0.7px,transparent_0.7px)] bg-[size:16px_16px] max-md:h-[180px] max-sm:h-[220px]">
+                  <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_75%_75%_at_50%_55%,transparent_30%,var(--visual-bg)_100%)] opacity-80" />
                   <span className="absolute top-[17px] left-5 font-mono text-[10px] tracking-[1px] text-muted uppercase">
                     {project.category}
                   </span>
@@ -684,7 +695,7 @@ function App() {
                     <ProjectGraphic motif={project.motif} />
                   </div>
                   <span
-                    className="absolute right-[18px] bottom-[18px] grid size-[30px] place-items-center border border-visual-line text-secondary transition-colors duration-200 group-hover:bg-accent group-hover:text-on-accent group-active:bg-accent group-active:text-on-accent"
+                    className="absolute right-[18px] bottom-[18px] grid size-[30px] place-items-center rounded-full border border-visual-line text-secondary transition-[color,background-color,border-color,transform] duration-200 group-hover:scale-[1.12] group-hover:bg-accent group-hover:text-on-accent group-active:scale-[1.12] group-active:bg-accent group-active:text-on-accent"
                     aria-label="Open project"
                   >
                     <ArrowIcon className="size-[18px]" />
@@ -692,7 +703,7 @@ function App() {
                 </div>
                 <div className="p-[26px] max-md:p-5">
                   <Eyebrow className="text-[10px]">{project.label}</Eyebrow>
-                  <h3 className="mt-2 mb-3 text-[26px] tracking-[-0.7px] max-md:text-[23px]">
+                  <h3 className="mt-2 mb-3 font-[Georgia,serif] italic font-normal text-[26px] tracking-[-0.01em] max-md:text-[23px]">
                     {project.name}
                   </h3>
                   <p className="max-w-[48ch] text-[15px] leading-[1.75] text-muted max-md:text-[14px]">
@@ -714,7 +725,8 @@ function App() {
             data-reveal=""
             className={`mb-9 flex items-end justify-between gap-6 max-md:items-start ${reveal}`}
           >
-            <div>
+            <div className="relative">
+              <span aria-hidden="true" className="pointer-events-none absolute -top-3 -left-1 select-none font-mono text-[clamp(100px,10vw,176px)] font-bold leading-none text-fg/[0.04]">02</span>
               <Eyebrow>02 / EXPERIENCE</Eyebrow>
               <h2 id="experience-title" className={heading2}>
                 Where I've been building.
@@ -744,7 +756,7 @@ function App() {
                   <p className="mb-[9px] font-mono text-[12px] text-muted">
                     {job.role}
                   </p>
-                  <h3 className="mb-[13px] text-[27px] tracking-[-0.7px] max-md:text-[24px] max-sm:mt-0">
+                  <h3 className="mb-[13px] font-[Georgia,serif] italic font-normal text-[27px] tracking-[-0.01em] max-md:text-[24px] max-sm:mt-0">
                     {job.company}
                   </h3>
                   <p className="text-[15px] leading-[1.7] text-muted">
@@ -787,12 +799,12 @@ function App() {
             <img
               src={`${profile.github}.png?size=144`}
               alt={`${profile.name}'s GitHub profile picture`}
-              width="72"
-              height="72"
+              width="80"
+              height="80"
               loading="lazy"
               decoding="async"
               referrerPolicy="no-referrer"
-              className="size-[72px] rounded-full border border-line bg-visual-bg transition-transform duration-300 ease-[var(--ease-spring)] motion-safe:hover:scale-[1.06] motion-safe:hover:-rotate-[4deg] motion-safe:active:scale-[1.06] motion-safe:active:-rotate-[4deg]"
+              className="size-20 rounded-full border border-line bg-visual-bg ring-2 ring-accent/20 ring-offset-2 ring-offset-bg transition-transform duration-300 ease-[var(--ease-spring)] motion-safe:hover:scale-[1.06] motion-safe:hover:-rotate-[4deg] motion-safe:active:scale-[1.06] motion-safe:active:-rotate-[4deg]"
             />
             <span className="text-[13px] leading-[1.9] text-muted">
               A face to go with the code.
@@ -810,7 +822,8 @@ function App() {
             data-reveal=""
             className={`mb-[44px] grid grid-cols-2 items-center gap-[70px] max-lg:gap-[30px] max-md:grid-cols-1 max-md:gap-[25px] ${reveal}`}
           >
-            <div>
+            <div className="relative">
+              <span aria-hidden="true" className="pointer-events-none absolute -top-3 -left-1 select-none font-mono text-[clamp(100px,10vw,176px)] font-bold leading-none text-fg/[0.04]">03</span>
               <Eyebrow>03 / A LITTLE ABOUT ME</Eyebrow>
               <h2 id="about-title" className={heading2}>
                 Curiosity, all the
@@ -839,10 +852,17 @@ function App() {
                   className="absolute inset-x-0 top-0 h-px origin-left scale-x-0 bg-accent transition-transform duration-500 ease-[var(--ease-settle)] group-hover:scale-x-100 group-active:scale-x-100"
                   aria-hidden="true"
                 />
+                {/* Large faint numeral — a ghost of the index, felt not read. */}
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute right-3 bottom-2 select-none font-mono text-[72px] font-bold leading-none text-fg/[0.04] transition-[color] duration-500 group-hover:text-fg/[0.07]"
+                >
+                  0{index + 1}
+                </span>
                 <span className="font-mono text-[11px] text-accent">
                   0{index + 1}
                 </span>
-                <h3 className="mt-5 mb-3 text-[20px] transition-transform duration-500 ease-[var(--ease-settle)] group-hover:translate-x-[6px] group-active:translate-x-[6px]">
+                <h3 className="mt-5 mb-3 font-[Georgia,serif] italic font-normal text-[20px] transition-transform duration-500 ease-[var(--ease-settle)] group-hover:translate-x-[6px] group-active:translate-x-[6px]">
                   {skill.name}
                 </h3>
                 <p className="min-h-[70px] text-[14px] leading-[1.7] text-muted max-md:min-h-[48px]">
@@ -854,11 +874,11 @@ function App() {
                       key={item}
                       // Marker sits outside the flow, so nothing shifts at rest.
                       className="relative transition-transform duration-500 ease-[var(--ease-settle)] group-hover:translate-x-[11px] group-active:translate-x-[11px]"
-                      style={{ transitionDelay: `${position * 45}ms` }}
+                      style={{ transitionDelay: `${position * 32}ms` }}
                     >
                       <span
                         className="absolute top-1/2 -left-[11px] size-[3px] -translate-y-1/2 rounded-full bg-accent opacity-0 transition-opacity duration-500 group-hover:opacity-100 group-active:opacity-100"
-                        style={{ transitionDelay: `${position * 45}ms` }}
+                        style={{ transitionDelay: `${position * 32}ms` }}
                         aria-hidden="true"
                       />
                       {item}
@@ -874,7 +894,7 @@ function App() {
           >
             <Eyebrow>EDUCATION</Eyebrow>
             <div className="[&>p]:text-[13px] [&>p]:leading-[1.8]">
-              <h3 className="mb-[10px] text-[18px]">
+              <h3 className="mb-[10px] font-[Georgia,serif] italic font-normal text-[18px]">
                 {profile.education[0].institution}
               </h3>
               <p>{profile.education[0].qualification}</p>
@@ -882,7 +902,7 @@ function App() {
               <Accordion label="Earlier education">
                 {profile.education.slice(1).map((e) => (
                   <div className="mt-[18px]" key={e.institution}>
-                    <h4 className="text-[14px] font-medium">{e.institution}</h4>
+                    <h4 className="font-[Georgia,serif] italic font-normal text-[14px]">{e.institution}</h4>
                     <p className="text-[13px] leading-[1.8]">
                       {e.qualification}
                     </p>
@@ -906,11 +926,22 @@ function App() {
         <section
           id="contact"
           data-reveal=""
-          className={`${shell} mt-[100px] border border-visual-line bg-visual-bg p-[46px] max-md:mt-[65px] max-md:p-7 max-sm:p-[25px] ${reveal}`}
+          className={`relative ${shell} mt-[120px] overflow-hidden rounded-3xl border border-visual-line/70 bg-visual-bg p-[56px] shadow-[0_4px_40px_#0000001a] max-md:mt-[80px] max-md:p-9 max-sm:p-[28px] ${reveal}`}
         >
+          {/* Atmospheric glow anchored near the heading — gives the card a
+              genuine light source instead of a flat background. Clipped by
+              the parent's overflow-hidden so it never bleeds outside. */}
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0"
+            style={{
+              background:
+                "radial-gradient(ellipse 70% 55% at 18% 30%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 65%)",
+            }}
+          />
           <Eyebrow>A PROJECT, A QUESTION, OR JUST A HELLO.</Eyebrow>
           <div className="mt-5 mb-[35px] flex items-center justify-between gap-[30px] max-sm:gap-3">
-            <h2 className="text-[64px] leading-[1.05] tracking-[-2.5px] max-md:text-[46px] max-md:tracking-[-2px] max-sm:text-[40px]">
+            <h2 className="font-[Georgia,serif] italic font-normal text-[64px] leading-[1.05] tracking-[-0.015em] max-md:text-[46px] max-sm:text-[40px]">
               Let's build
               <br />
               something <span className="text-accent">good.</span>
@@ -923,7 +954,7 @@ function App() {
               <ArrowIcon className="size-[0.8em]" />
             </a>
           </div>
-          <div className="flex justify-between gap-[25px] border-t border-visual-line pt-[25px] text-[15px] max-md:flex-col max-md:text-[14px]">
+          <div className="flex justify-between gap-[25px] border-t border-visual-line/50 pt-[25px] text-[15px] max-md:flex-col max-md:text-[14px]">
             <CopyEmail />
             <a
               className="group inline-flex items-center gap-[7px]"
@@ -932,7 +963,7 @@ function App() {
               rel="noreferrer"
             >
               Download résumé{" "}
-              <span className="mx-[10px] border border-visual-line p-[3px] font-mono text-[10px] text-muted">
+              <span className="mx-[10px] rounded border border-visual-line px-[6px] py-[3px] font-mono text-[10px] text-muted">
                 PDF
               </span>{" "}
               <ArrowIcon direction="down" />
@@ -944,32 +975,41 @@ function App() {
       {flags.sectionNav && <SectionNav />}
       {flags.commandPalette && <CommandPalette />}
       <ThemeSwitcher />
-      <footer
-        className={`${shell} flex justify-between pt-[35px] pb-[100px] font-mono text-[11px] text-muted max-md:gap-5 max-md:leading-[1.8] max-sm:flex-col`}
-      >
-        <span>
-          © {new Date().getFullYear()} {profile.name}
-        </span>
-        <div className="flex gap-[25px] max-md:gap-[15px]">
-          <a
-            className="group inline-flex items-center gap-[7px]"
-            href={profile.github}
-            target="_blank"
-            rel="noreferrer"
+      <footer className="mt-[80px] border-t border-line/30">
+        <div className={shell}>
+          {/* Colophon — the page closes with its author's name, as a printed book. */}
+          <p
+            aria-hidden="true"
+            className="pointer-events-none select-none overflow-hidden font-[Georgia,serif] italic font-normal leading-none tracking-[-0.02em] text-fg/[0.06] pt-[44px] pb-[44px] text-[clamp(52px,8vw,108px)]"
           >
-            GitHub <ArrowIcon />
-          </a>
-          <a
-            className="group inline-flex items-center gap-[7px]"
-            href="https://x.com/junaadh"
-            target="_blank"
-            rel="noreferrer"
-          >
-            X <ArrowIcon />
-          </a>
-          <a className="group inline-flex items-center gap-[7px]" href="#">
-            Back to top <ArrowIcon direction="up" />
-          </a>
+            {profile.name}.
+          </p>
+          <div className="flex items-center justify-between pb-[80px] font-mono text-[11px] text-muted max-md:gap-5 max-md:leading-[1.8] max-sm:flex-col max-sm:items-start">
+            <span>
+              © {new Date().getFullYear()} {profile.name}
+            </span>
+            <div className="flex gap-[25px] max-md:gap-[15px]">
+              <a
+                className="group inline-flex items-center gap-[7px]"
+                href={profile.github}
+                target="_blank"
+                rel="noreferrer"
+              >
+                GitHub <ArrowIcon />
+              </a>
+              <a
+                className="group inline-flex items-center gap-[7px]"
+                href="https://x.com/junaadh"
+                target="_blank"
+                rel="noreferrer"
+              >
+                X <ArrowIcon />
+              </a>
+              <a className="group inline-flex items-center gap-[7px]" href="#">
+                Back to top <ArrowIcon direction="up" />
+              </a>
+            </div>
+          </div>
         </div>
       </footer>
     </>

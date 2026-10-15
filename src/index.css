@@ -23,6 +23,20 @@
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
+/* -------------------------------------------- animated gradient sources --
+   @property turns these custom properties from opaque strings into typed
+   <percentage> values, which lets the browser interpolate them inside
+   @keyframes exactly like ordinary numeric values.  Without @property the
+   browser cannot tween them and the animation snaps between keyframes.
+
+   Six properties: x/y for each of the three gradient light sources. */
+@property --hg-ax { syntax: '<percentage>'; inherits: false; initial-value: 26%; }
+@property --hg-ay { syntax: '<percentage>'; inherits: false; initial-value:  2%; }
+@property --hg-bx { syntax: '<percentage>'; inherits: false; initial-value: 88%; }
+@property --hg-by { syntax: '<percentage>'; inherits: false; initial-value:  9%; }
+@property --hg-cx { syntax: '<percentage>'; inherits: false; initial-value: 52%; }
+@property --hg-cy { syntax: '<percentage>'; inherits: false; initial-value: 42%; }
+
 /* -------------------------------------------------------------- palette -- */
 /* theme.js stamps [data-theme] on <html> before first paint, so light is a
    plain attribute override rather than a media query. Utilities read these
@@ -103,28 +117,35 @@
   --font-sans: Inter, "Helvetica Neue", Arial, sans-serif;
   --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
 
-  /* Two curves carry every transition on the page: `settle` for things that
-     arrive, `spring` for things that pop. */
-  --ease-settle: cubic-bezier(0.2, 0.7, 0.2, 1);
-  --ease-spring: cubic-bezier(0.2, 0.8, 0.2, 1);
+  /* Three curves: `settle` for arrivals (easeOutExpo — fast out, precise
+     landing), `spring` for smooth layout transitions, `bounce` for scale/
+     rotate animations where a little overshoot feels physical. `soft-bounce`
+     is the same character but less aggressive — used for click-driven
+     indicators where no gesture momentum is present. */
+  --ease-settle: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-soft-bounce: cubic-bezier(0.34, 1.28, 0.64, 1);
 
-  --animate-arrive: arrive 650ms var(--ease-settle) both;
-  --animate-card-arrive: card-arrive 460ms var(--ease-settle) backwards;
+  --animate-arrive: arrive 480ms var(--ease-settle) both;
+  --animate-card-arrive: card-arrive 360ms var(--ease-settle) backwards;
   --animate-byte-change: byte-change 230ms ease-out;
-  --animate-cell-in: cell-in 320ms var(--ease-spring) backwards;
-  --animate-cell-fill: cell-fill 340ms var(--ease-spring);
-  --animate-bubble-arrive: bubble-arrive 450ms 350ms var(--ease-spring)
+  --animate-cell-in: cell-in 280ms var(--ease-bounce) backwards;
+  --animate-cell-fill: cell-fill 300ms var(--ease-bounce);
+  --animate-bubble-arrive: bubble-arrive 380ms 280ms var(--ease-bounce)
     backwards;
   --animate-icon-arrive: icon-arrive 250ms ease-out;
   --animate-ping-slow: ping-slow 2600ms cubic-bezier(0, 0, 0.2, 1) infinite;
   --animate-marquee: marquee 34s linear infinite;
   --animate-glass-in: glass-in 160ms ease-out;
-  --animate-glass-panel: glass-panel 220ms var(--ease-spring);
+  --animate-glass-panel: glass-panel 260ms var(--ease-bounce);
 
   @keyframes arrive {
     from {
       opacity: 0;
-      transform: translateY(18px);
+      /* 20 px matches the `translate-y-5` applied to the pending state so
+         there is no positional jump when the animation fires on reveal. */
+      transform: translateY(20px);
     }
     to {
       opacity: 1;
@@ -134,7 +155,7 @@
   @keyframes card-arrive {
     from {
       opacity: 0;
-      transform: translateY(14px) scale(0.985);
+      transform: translateY(18px) scale(0.98);
     }
     to {
       opacity: 1;
@@ -196,21 +217,25 @@
   }
   @keyframes ping-slow {
     0% {
-      opacity: 0.55;
+      opacity: 0.45;
       transform: scale(1);
     }
     70%,
     100% {
       opacity: 0;
-      transform: scale(2.6);
+      transform: scale(2);
     }
   }
   @keyframes glass-in {
     from {
       opacity: 0;
+      /* Blur collapses to zero as the surface arrives, so it reads as a real
+         material condensing rather than a plain opacity dissolve. */
+      filter: blur(8px);
     }
     to {
       opacity: 1;
+      filter: blur(0px);
     }
   }
   @keyframes glass-panel {
@@ -240,10 +265,42 @@
        is exactly wrong for light-on-dark text at 13-15px; the default renders
        the same weights noticeably more solid. */
     font-weight: 450;
+    /* Let the variable font tune stroke contrast and aperture per size. */
+    font-optical-sizing: auto;
     scroll-behavior: smooth;
-    scroll-padding-top: 24px;
+    scroll-padding-top: 96px;
     color: var(--fg);
-    background: var(--bg);
+    /* Three asymmetric radial sources.  Their positions are the @property
+       custom properties above, which animate smoothly in hg-flow below.
+       color-mix resolves var(--accent) at the call site so both themes work
+       without any extra selector. */
+    background:
+      radial-gradient(
+        ellipse 58% 48% at var(--hg-ax) var(--hg-ay),
+        color-mix(in srgb, var(--accent) 16%, transparent),
+        transparent 75%
+      ),
+      radial-gradient(
+        ellipse 42% 38% at var(--hg-bx) var(--hg-by),
+        color-mix(in srgb, var(--accent) 9%, transparent),
+        transparent 70%
+      ),
+      radial-gradient(
+        ellipse 65% 55% at var(--hg-cx) var(--hg-cy),
+        color-mix(in srgb, var(--accent) 4%, transparent),
+        transparent 80%
+      ),
+      var(--bg);
+  }
+  /* Animate the gradient source positions. Wrapping in no-preference so
+     the global prefers-reduced-motion reset at the bottom of this file
+     keeps working: it kills animations on reduced-motion systems via
+     `* { animation: none !important }`, but this declaration never fires
+     there in the first place. */
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      animation: hg-flow 26s ease-in-out infinite;
+    }
   }
   body {
     min-width: 320px;
@@ -291,6 +348,26 @@
    unsupported, so nothing is left mid-animation on Safari or Firefox. */
 /* `cover` rather than `entry 0% exit 100%`: they mean the same range, but the
    CSS minifier rewrites that shorthand into a shorter, different one. */
+/* Header border and background tint materialise as content scrolls beneath
+   the chrome. At rest (scroll = 0) the border is invisible and the background
+   is transparent; by 100 px of scroll both have eased to their full values.
+   Falls back gracefully to the static classes on Safari / Firefox. */
+@utility header-scroll-border {
+  @supports (animation-timeline: scroll()) {
+    @media (prefers-reduced-motion: no-preference) {
+      animation: header-mat linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0px 100px;
+    }
+  }
+}
+@keyframes header-mat {
+  from {
+    border-bottom-color: transparent;
+    background-color: transparent;
+  }
+}
+
 @utility scroll-parallax {
   @supports (animation-timeline: view()) {
     @media (prefers-reduced-motion: no-preference) {
@@ -319,8 +396,50 @@
 }
 @keyframes scroll-exit {
   to {
-    opacity: 0.25;
-    transform: translateY(-26px) scale(0.97);
+    opacity: 0.32;
+    transform: translateY(-24px) scale(0.963);
+  }
+}
+
+/* Organic film-grain — adds warmth and material presence.
+   Fixed so it tiles over the whole viewport independently of scroll. */
+html::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  pointer-events: none;
+  opacity: 0.055;
+  background-image: url('/grain.svg');
+  background-repeat: repeat;
+  background-size: 200px 200px;
+}
+
+/* Gradient animation — each source drifts independently on its own arc.
+   Different timing at each keyframe stop ensures the three sources never
+   reach their extremes simultaneously, keeping the field in constant,
+   non-repetitive motion.  The positions are designed so no source ever
+   crosses another, maintaining the three distinct light pools. */
+@keyframes hg-flow {
+  0%, 100% {
+    --hg-ax: 26%; --hg-ay:  2%;
+    --hg-bx: 88%; --hg-by:  9%;
+    --hg-cx: 52%; --hg-cy: 42%;
+  }
+  20% {
+    --hg-ax: 34%; --hg-ay: -6%;
+    --hg-bx: 80%; --hg-by: 18%;
+    --hg-cx: 46%; --hg-cy: 36%;
+  }
+  45% {
+    --hg-ax: 18%; --hg-ay:  8%;
+    --hg-bx: 92%; --hg-by:  4%;
+    --hg-cx: 62%; --hg-cy: 50%;
+  }
+  70% {
+    --hg-ax: 30%; --hg-ay: -3%;
+    --hg-bx: 76%; --hg-by: 15%;
+    --hg-cx: 44%; --hg-cy: 38%;
   }
 }
 

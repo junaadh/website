@@ -101,7 +101,7 @@ export default function ThemeSwitcher() {
     >
       {/* Pinned to the docked edge, so widening always grows into the screen. */}
       <div
-        className={`absolute top-0 h-12 overflow-hidden rounded-full border border-strong-line bg-surface transition-[width,box-shadow] duration-[420ms] ease-[var(--ease-spring)] motion-safe:animate-bubble-arrive ${right ? "right-0" : "left-0"} ${open ? "shadow-[0_10px_34px_#00000030]" : "shadow-[0_4px_22px_#00000024]"}`}
+        className={`absolute top-0 h-12 overflow-hidden rounded-full border border-strong-line bg-surface/80 backdrop-blur-xl backdrop-saturate-150 transition-[width,box-shadow] duration-[360ms] ease-[var(--ease-spring)] motion-safe:animate-bubble-arrive ${right ? "right-0" : "left-0"} ${open ? "shadow-[0_10px_34px_#00000040]" : "shadow-[0_4px_22px_#00000030]"}`}
         style={{
           width: open ? expandedWidth : collapsed,
           rotate: `${bubble.tilt}deg`,
@@ -162,7 +162,7 @@ export default function ThemeSwitcher() {
       </div>
       {/* Only while collapsed, and on whichever side the bubble is docked. */}
       <span
-        className="pointer-events-none absolute bottom-[10px] left-[60px] -translate-x-1 rounded-md border border-line bg-surface px-[9px] py-1.5 text-[12px] whitespace-nowrap text-secondary opacity-0 transition-[opacity,transform] duration-200 group-data-[side=right]:right-[60px] group-data-[side=right]:left-auto group-data-[side=right]:translate-x-1 group-[[data-open=false]:hover]:translate-x-0 group-[[data-open=false]:hover]:opacity-100 group-[[data-open=false]:focus-within]:translate-x-0 group-[[data-open=false]:focus-within]:opacity-100"
+        className="pointer-events-none absolute bottom-[10px] left-[60px] -translate-x-1 rounded-md border border-line bg-surface/85 px-[9px] py-1.5 text-[12px] whitespace-nowrap text-secondary opacity-0 backdrop-blur-sm transition-[opacity,transform] duration-200 group-data-[side=right]:right-[60px] group-data-[side=right]:left-auto group-data-[side=right]:translate-x-1 group-[[data-open=false]:hover]:translate-x-0 group-[[data-open=false]:hover]:opacity-100 group-[[data-open=false]:focus-within]:translate-x-0 group-[[data-open=false]:focus-within]:opacity-100"
         aria-hidden="true"
       >
         Appearance · drag to move

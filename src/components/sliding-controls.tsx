@@ -73,7 +73,7 @@ export default function SlidingControls({
       aria-label={label}
     >
       <span
-        className={`pointer-events-none absolute top-0 left-0 z-0 transition-[transform,width,height] duration-300 ease-[var(--ease-spring)] ${looks[variant]}`}
+        className={`pointer-events-none absolute top-0 left-0 z-0 transition-[transform,width,height] duration-[260ms] ease-[var(--ease-soft-bounce)] ${looks[variant]}`}
         style={geometry[variant]}
         aria-hidden="true"
       />
