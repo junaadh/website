@@ -80,7 +80,11 @@ async function userData(login: string, env: Env): Promise<Fetched> {
     }
   }
   try {
-    const fetched = await fetchCardUser(login, env.GITHUB_TOKEN || undefined);
+    const fetched = await fetchCardUser(
+      login,
+      env.GITHUB_TOKEN || undefined,
+      env.GITHUB_PRIVATE !== "false",
+    );
     await putJson(key, { kind: "data", fetched } satisfies DataEntry, HOUR);
     return fetched;
   } catch (error) {

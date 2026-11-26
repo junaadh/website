@@ -40,16 +40,16 @@ const headers = (token?: string): HeadersInit => ({
 const get = (url: string, token?: string) =>
   fetch(url, { headers: headers(token), signal: AbortSignal.timeout(8000) });
 
-const QUERY = `query($login:String!, $since:DateTime!){
+const query = (privacy: string) => `query($login:String!, $since:DateTime!){
   user(login:$login){
     login name bio location createdAt avatarUrl(size:160)
     followers{totalCount} following{totalCount}
     pullRequests{totalCount} issues{totalCount}
     repositoriesContributedTo(first:1, contributionTypes:[COMMIT,PULL_REQUEST,REPOSITORY,ISSUE]){totalCount}
-    repositories(ownerAffiliations:OWNER, isFork:false, privacy:PUBLIC){totalCount}
-    owned: repositories(first:100, ownerAffiliations:OWNER, isFork:false, privacy:PUBLIC, orderBy:{field:STARGAZERS, direction:DESC}){
+    repositories(ownerAffiliations:OWNER, isFork:false${privacy}){totalCount}
+    owned: repositories(first:100, ownerAffiliations:OWNER, isFork:false${privacy}, orderBy:{field:STARGAZERS, direction:DESC}){
       nodes{
-        name description stargazerCount forkCount primaryLanguage{name}
+        name description isPrivate stargazerCount forkCount primaryLanguage{name}
         languages(first:8, orderBy:{field:SIZE, direction:DESC}){ edges{ size node{ name color } } }
       }
     }
@@ -77,6 +77,7 @@ interface GqlUser {
     nodes: {
       name: string;
       description: string | null;
+      isPrivate: boolean;
       stargazerCount: number;
       forkCount: number;
       primaryLanguage: { name: string } | null;
@@ -102,12 +103,24 @@ function topLanguages(sizes: Map<string, { color: string; size: number }>) {
   return ranked.map(([name, v]) => ({ name, color: v.color, share: v.size / total }));
 }
 
-async function viaGraphql(login: string, token: string): Promise<CardUser> {
+/**
+ * With includePrivate, private repos the token can see count toward repos,
+ * stars and languages (only the token owner's own, in practice). Their names
+ * and descriptions never reach the card: the top list is public repos only.
+ */
+async function viaGraphql(
+  login: string,
+  token: string,
+  includePrivate: boolean,
+): Promise<CardUser> {
   const since = new Date(Date.UTC(new Date().getUTCFullYear(), 0, 1)).toISOString();
   const res = await fetch(`${API}/graphql`, {
     method: "POST",
     headers: { ...headers(token), "content-type": "application/json" },
-    body: JSON.stringify({ query: QUERY, variables: { login, since } }),
+    body: JSON.stringify({
+      query: query(includePrivate ? "" : ", privacy:PUBLIC"),
+      variables: { login, since },
+    }),
     signal: AbortSignal.timeout(10_000),
   });
   if (res.status === 401) throw new GitHubError(502, "GITHUB_TOKEN was rejected by GitHub");
@@ -158,13 +171,16 @@ async function viaGraphql(login: string, token: string): Promise<CardUser> {
     contributions: calendar.totalContributions,
     days: days.slice(-371),
     languages: topLanguages(sizes),
-    top: u.owned.nodes.slice(0, 6).map((r) => ({
-      name: r.name,
-      description: clean(r.description, 160),
-      language: r.primaryLanguage?.name ?? "",
-      stars: r.stargazerCount,
-      forks: r.forkCount,
-    })),
+    top: u.owned.nodes
+      .filter((r) => !r.isPrivate)
+      .slice(0, 6)
+      .map((r) => ({
+        name: r.name,
+        description: clean(r.description, 160),
+        language: r.primaryLanguage?.name ?? "",
+        stars: r.stargazerCount,
+        forks: r.forkCount,
+      })),
     avatar: u.avatarUrl, // swapped for a data: URL by fetchCardUser
   };
 }
@@ -385,9 +401,13 @@ async function inlineAvatar(url: string): Promise<string> {
   }
 }
 
-export async function fetchCardUser(login: string, token?: string): Promise<Fetched> {
+export async function fetchCardUser(
+  login: string,
+  token?: string,
+  includePrivate = true,
+): Promise<Fetched> {
   const source = token ? "graphql" : "rest";
-  const user = token ? await viaGraphql(login, token) : await viaRest(login);
+  const user = token ? await viaGraphql(login, token, includePrivate) : await viaRest(login);
   user.avatar = await inlineAvatar(user.avatar);
   return { user, source };
 }
