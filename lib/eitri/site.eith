@@ -1,0 +1,8 @@
+pub fn print(text: string) -> void
+pub fn status(text: string) -> void
+pub fn open(slug: string) -> void
+pub fn highlight(slug: string) -> void
+pub fn weather(kind: string) -> void
+pub fn hue(degrees: i64) -> void
+pub fn projects() -> []string
+pub fn tag(slug: string) -> string

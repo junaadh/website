@@ -1,0 +1,177 @@
+@import "tailwindcss";
+
+/* --hue is the single accent knob (Eitri will turn it later). */
+:root {
+  color-scheme: dark;
+  --hue: 195;
+}
+
+@theme inline {
+  --font-sans: var(--font-geist), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+@theme {
+  --color-void: oklch(0.12 0.015 250);
+  --color-panel: oklch(0.16 0.02 250 / 0.55);
+  --color-line: oklch(0.85 0.04 var(--hue) / 0.1);
+  --color-line-strong: oklch(0.85 0.08 var(--hue) / 0.3);
+  --color-ink: oklch(0.96 0.01 var(--hue));
+  --color-ink-2: oklch(0.8 0.02 var(--hue));
+  --color-ink-3: oklch(0.6 0.03 var(--hue));
+  --color-signal: oklch(0.86 0.15 var(--hue));
+  --color-ok: oklch(0.86 0.19 150);
+  --color-warn: oklch(0.84 0.16 75);
+  --color-off: oklch(0.6 0.02 250);
+
+  --text-display: clamp(3.5rem, 13vw, 9rem);
+  --text-display--line-height: 0.88;
+  --text-display--letter-spacing: -0.04em;
+
+  --animate-pulse-dot: pulse-dot 2s ease-in-out infinite;
+  --animate-sweep: sweep 1.2s ease-out;
+
+  @keyframes pulse-dot {
+    0%,
+    100% {
+      opacity: 1;
+      box-shadow: 0 0 0 0 currentColor;
+    }
+    50% {
+      opacity: 0.6;
+      box-shadow: 0 0 0 4px transparent;
+    }
+  }
+  @keyframes sweep {
+    from {
+      transform: translateY(-100%);
+    }
+    to {
+      transform: translateY(100%);
+    }
+  }
+}
+
+@property --bracket {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 10px;
+}
+
+@layer base {
+  body {
+    @apply min-h-dvh bg-void font-sans text-ink antialiased;
+  }
+  ::selection {
+    background: oklch(0.86 0.15 var(--hue) / 0.3);
+  }
+  :focus-visible {
+    outline: 1px solid var(--color-signal);
+    outline-offset: 3px;
+  }
+}
+
+/* Fixed backdrop: faint grid fading out from the top, a glow, scanlines. */
+@utility backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 45% at 50% -5%, oklch(0.55 0.16 var(--hue) / 0.28), transparent 70%),
+    linear-gradient(var(--color-line) 1px, transparent 1px) 0 0 / 56px 56px,
+    linear-gradient(90deg, var(--color-line) 1px, transparent 1px) 0 0 / 56px 56px;
+  mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, black 30%, transparent 85%);
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(transparent 0 2px, oklch(0 0 0 / 0.18) 2px 3px);
+  }
+}
+
+/* HUD panel: hairline frame, glass fill, corner brackets that grow on hover. */
+@utility hud {
+  position: relative;
+  border: 1px solid var(--color-line);
+  background: var(--color-panel);
+  backdrop-filter: blur(8px);
+  transition:
+    border-color 0.3s,
+    --bracket 0.3s;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    --c: var(--color-signal);
+    background:
+      linear-gradient(var(--c) 0 0) top left / var(--bracket) 1px,
+      linear-gradient(var(--c) 0 0) top left / 1px var(--bracket),
+      linear-gradient(var(--c) 0 0) top right / var(--bracket) 1px,
+      linear-gradient(var(--c) 0 0) top right / 1px var(--bracket),
+      linear-gradient(var(--c) 0 0) bottom left / var(--bracket) 1px,
+      linear-gradient(var(--c) 0 0) bottom left / 1px var(--bracket),
+      linear-gradient(var(--c) 0 0) bottom right / var(--bracket) 1px,
+      linear-gradient(var(--c) 0 0) bottom right / 1px var(--bracket);
+    background-repeat: no-repeat;
+  }
+}
+
+/* Interactive HUD: brackets extend, frame lights up, a scan line passes. */
+@utility hud-hover {
+  overflow: hidden;
+  &:hover,
+  &:focus-visible {
+    --bracket: 22px;
+    border-color: var(--color-line-strong);
+  }
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(transparent, oklch(0.86 0.15 var(--hue) / 0.08), transparent);
+    transform: translateY(-100%);
+  }
+  &:hover::after {
+    animation: var(--animate-sweep);
+  }
+}
+
+/* Small mono label used everywhere: "01 // WORK", "STATUS", etc. */
+@utility label {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+}
+
+@utility glow {
+  text-shadow: 0 0 24px oklch(0.86 0.15 var(--hue) / 0.45);
+}
+
+/* Angled-corner button. */
+@utility chamfer {
+  clip-path: polygon(
+    0 0,
+    calc(100% - 10px) 0,
+    100% 10px,
+    100% 100%,
+    10px 100%,
+    0 calc(100% - 10px)
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

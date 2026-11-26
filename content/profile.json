@@ -1,0 +1,229 @@
+{
+  "person": {
+    "name": "Junad",
+    "fullName": "Moosa Junad",
+    "handle": "junaadh",
+    "title": "Software Developer",
+    "location": "Addu City, Maldives",
+    "languages": ["English", "Dhivehi"],
+    "intro": "Software developer in the Maldives. I build business software at SME Digital, and on my own time I'm writing a native code editor for macOS and a scripting language to extend it.",
+    "about": "I studied computer science at Taylor's University, majoring in cyber security. Most of my day job is TypeScript, React, and PostgreSQL. Most of my side projects are Rust, and some of them are lower than that."
+  },
+  "links": {
+    "email": "junaadh.02@gmail.com",
+    "github": "https://github.com/junaadh",
+    "cv": "/cv.pdf"
+  },
+  "meta": {
+    "title": "Junad — Software Developer",
+    "description": "Software developer in the Maldives. Web apps, native apps, compilers, and a scripting language."
+  },
+  "projects": [
+    {
+      "slug": "eitri",
+      "name": "Eitri",
+      "kind": "Scripting language",
+      "year": 2026,
+      "status": "active",
+      "featured": true,
+      "cv": true,
+      "summary": "A statically typed scripting language for embedding in Rust.",
+      "description": "Scripts are type-checked and compiled to verified bytecode before they run, then executed by a register-based interpreter with execution budgets. It also runs this site's customisation console, compiled to WebAssembly.",
+      "stack": ["Rust", "WebAssembly"],
+      "links": {},
+      "demo": "eitri-inspector"
+    },
+    {
+      "slug": "vyr",
+      "name": "VYR",
+      "kind": "Code editor",
+      "year": 2026,
+      "status": "active",
+      "featured": true,
+      "cv": true,
+      "summary": "A native code editor for macOS, built around selections.",
+      "description": "A Rust editing core behind a C interface, a Swift and AppKit app, and Metal text rendering. Every command works on many selections at once, with a modal keymap alongside the standard macOS shortcuts.",
+      "stack": ["Rust", "Swift", "AppKit", "Metal"],
+      "links": {},
+      "highlights": [
+        "Selection-first editing: multiple selections, structural selection by syntax node, text objects, and regex select, split and keep.",
+        "Tree-sitter highlighting, indentation and folding; language servers kept in sync incrementally.",
+        "Git built in: gutter change markers with per-hunk stage and revert, inline blame, and a source control navigator.",
+        "Undo history as a tree, with time travel, local history snapshots and crash recovery."
+      ]
+    },
+    {
+      "slug": "web-server",
+      "name": "Web Server",
+      "kind": "AArch64 assembly",
+      "year": 2024,
+      "status": "experiment",
+      "featured": false,
+      "cv": true,
+      "summary": "A TCP server written in AArch64 assembly.",
+      "description": "A small HTTP server written directly against system calls in AArch64 assembly.",
+      "stack": ["AArch64", "Assembly", "TCP"],
+      "links": {
+        "repo": "https://github.com/junaadh/WebServer"
+      }
+    },
+    {
+      "slug": "bloom-light",
+      "name": "Bloom Light",
+      "kind": "E-commerce",
+      "year": 2025,
+      "status": "shipped",
+      "featured": true,
+      "cv": true,
+      "summary": "An e-commerce storefront and admin, running in production.",
+      "description": "Storefront, admin dashboard, and the infrastructure to deploy and run them.",
+      "stack": ["Next.js", "PostgreSQL", "Docker", "Cloudflare"],
+      "links": {
+        "live": "https://bloomlightmv.com"
+      },
+      "highlights": [
+        "Storefront and admin dashboard with containerised infrastructure, PostgreSQL, and object storage.",
+        "Deployments automated with GitHub Actions; private networking, reverse proxy, and TLS."
+      ]
+    },
+    {
+      "slug": "reqstly",
+      "name": "Reqstly",
+      "kind": "Request management",
+      "year": 2025,
+      "status": "shipped",
+      "featured": false,
+      "cv": false,
+      "summary": "A self-hosted request tracker in Rust and TypeScript.",
+      "description": "Ships with its own deployment stack, metrics, and centralised logging.",
+      "stack": ["Axum", "TypeScript", "Grafana"],
+      "links": {
+        "repo": "https://github.com/junaadh/reqstly"
+      }
+    },
+    {
+      "slug": "presencekit",
+      "name": "PresenceKit",
+      "kind": "macOS app",
+      "year": 2025,
+      "status": "shipped",
+      "featured": false,
+      "cv": false,
+      "summary": "Discord Rich Presence for macOS.",
+      "description": "Native tooling that shares desktop activity as Discord presence.",
+      "stack": ["Swift", "macOS"],
+      "links": {
+        "repo": "https://github.com/junaadh/PresenceKit"
+      }
+    },
+    {
+      "slug": "helix-rpc",
+      "name": "Helix RPC",
+      "kind": "Editor extension",
+      "year": 2024,
+      "status": "archived",
+      "featured": false,
+      "cv": false,
+      "summary": "Discord Rich Presence for the Helix editor.",
+      "description": "A Rust extension that connects Helix to Discord Rich Presence.",
+      "stack": ["Rust"],
+      "links": {
+        "repo": "https://github.com/junaadh/rise_code"
+      }
+    }
+  ],
+  "experience": [
+    {
+      "company": "SME Digital",
+      "role": "Software Developer",
+      "start": "2026-06",
+      "end": null,
+      "location": "Maldives",
+      "stack": ["TypeScript", "React", "PostgreSQL"],
+      "highlights": [
+        "Build and maintain full-stack business applications in TypeScript, React, and PostgreSQL.",
+        "API integrations, data validation, and configurable workflows for customer-facing and internal apps.",
+        "Access control, database tooling, and development workflow improvements."
+      ]
+    },
+    {
+      "company": "Alva Productions",
+      "role": "Software Engineer Intern",
+      "start": "2025-09",
+      "end": "2026-01",
+      "location": "Subang Jaya, Malaysia",
+      "stack": ["SwiftUI", "SwiftData", "CloudKit", "Flutter"],
+      "highlights": [
+        "Built and refactored SwiftUI apps with SwiftData and CloudKit.",
+        "Improved Flutter app responsiveness; maintained apps mixing Swift and Flutter."
+      ]
+    },
+    {
+      "company": "Dhiraagu",
+      "role": "Customer Support Specialist",
+      "start": "2022-04",
+      "end": "2022-12",
+      "location": "Addu City, Maldives",
+      "stack": [],
+      "highlights": []
+    }
+  ],
+  "education": [
+    {
+      "institution": "Taylor's University",
+      "qualification": "BSc (Hons) Computer Science",
+      "start": "2023-01",
+      "end": "2026-01",
+      "location": "Subang Jaya, Malaysia",
+      "details": "Cyber security major, AI extension. CGPA 3.42."
+    },
+    {
+      "institution": "Addu High School",
+      "qualification": "Pearson Edexcel A Levels",
+      "start": "2019-02",
+      "end": "2021-11",
+      "location": "Addu City, Maldives",
+      "details": "Science"
+    },
+    {
+      "institution": "Sharafuddin School",
+      "qualification": "Cambridge IGCSE / O Levels",
+      "start": "2016-01",
+      "end": "2018-11",
+      "location": "Addu City, Maldives",
+      "details": "Science"
+    }
+  ],
+  "skills": [
+    {
+      "name": "Languages",
+      "items": ["Rust", "TypeScript", "Swift", "C / C++", "Zig", "AArch64 assembly"]
+    },
+    {
+      "name": "Web",
+      "items": ["React", "Next.js", "Remix", "Axum", "Hono"]
+    },
+    {
+      "name": "Native",
+      "items": ["SwiftUI", "SwiftData", "CloudKit", "UIKit", "Flutter"]
+    },
+    {
+      "name": "Data & infra",
+      "items": [
+        "PostgreSQL",
+        "Redis",
+        "Docker",
+        "Linux",
+        "GitHub Actions",
+        "Cloudflare",
+        "Caddy",
+        "Prometheus",
+        "Grafana",
+        "Loki"
+      ]
+    }
+  ],
+  "customize": {
+    "defaultScript": "import site from \"site\"\n\nsite.hue(28)\nsite.weather(\"clear\")\n"
+  }
+}
