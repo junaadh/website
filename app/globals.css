@@ -1,0 +1,811 @@
+@import "tailwindcss";
+
+/* Knobs the Eitri console turns (see components/console/SiteProvider.tsx). */
+:root {
+  color-scheme: dark;
+  --hue: 195;
+  --glow: 45; /* 0-100 */
+  --grid: 56px;
+  --grid-on: 1;
+}
+html[data-grid="off"] {
+  --grid-on: 0;
+}
+
+@theme inline {
+  --font-sans: var(--font-geist), system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+@theme {
+  --color-void: oklch(0.12 0.015 250);
+  --color-panel: oklch(0.16 0.02 250 / 0.55);
+  --color-line: oklch(0.85 0.04 var(--hue) / 0.1);
+  --color-line-strong: oklch(0.85 0.08 var(--hue) / 0.3);
+  --color-ink: oklch(0.96 0.01 var(--hue));
+  --color-ink-2: oklch(0.8 0.02 var(--hue));
+  --color-ink-3: oklch(0.6 0.03 var(--hue));
+  --color-signal: oklch(0.86 0.15 var(--hue));
+  --color-ok: oklch(0.86 0.19 150);
+  --color-warn: oklch(0.84 0.16 75);
+  --color-off: oklch(0.6 0.02 250);
+  --color-err: oklch(0.72 0.17 25);
+
+  --text-display: clamp(3.5rem, 13cqi, 9rem); /* cqi: sized to the page, not the window */
+  --text-display--line-height: 0.88;
+  --text-display--letter-spacing: -0.04em;
+
+  --animate-pulse-dot: pulse-dot 2s ease-in-out infinite;
+  --animate-sweep: sweep 1.2s ease-out;
+
+  @keyframes pulse-dot {
+    0%,
+    100% {
+      opacity: 1;
+      box-shadow: 0 0 0 0 currentColor;
+    }
+    50% {
+      opacity: 0.6;
+      box-shadow: 0 0 0 4px transparent;
+    }
+  }
+  @keyframes sweep {
+    from {
+      transform: translateY(-100%);
+    }
+    to {
+      transform: translateY(100%);
+    }
+  }
+}
+
+@property --bracket {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 10px;
+}
+
+@layer base {
+  body {
+    @apply min-h-dvh bg-void font-sans text-ink antialiased;
+  }
+  ::selection {
+    background: oklch(0.86 0.15 var(--hue) / 0.3);
+  }
+  :focus-visible {
+    outline: 1px solid var(--color-signal);
+    outline-offset: 3px;
+  }
+}
+
+/* Fixed backdrop: faint grid fading out from the top, a glow, scanlines. */
+@utility backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  --grid-line: oklch(0.85 0.04 var(--hue) / calc(0.1 * var(--grid-on)));
+  background:
+    radial-gradient(
+      ellipse 70% 45% at 50% -5%,
+      oklch(0.55 0.16 var(--hue) / calc(0.28 * var(--glow) / 45)),
+      transparent 70%
+    ),
+    linear-gradient(var(--grid-line) 1px, transparent 1px) 0 0 / var(--grid) var(--grid),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px) 0 0 / var(--grid) var(--grid);
+  mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, black 30%, transparent 85%);
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(transparent 0 2px, oklch(0 0 0 / 0.18) 2px 3px);
+  }
+}
+
+/* HUD panel: hairline frame, glass fill, corner brackets that grow on hover. */
+@utility hud {
+  position: relative;
+  border: 1px solid var(--color-line);
+  background: var(--color-panel);
+  backdrop-filter: blur(8px);
+  transition:
+    border-color 0.3s,
+    --bracket 0.3s;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    --c: var(--color-signal);
+    background:
+      linear-gradient(var(--c) 0 0) top left / var(--bracket) 1px,
+      linear-gradient(var(--c) 0 0) top left / 1px var(--bracket),
+      linear-gradient(var(--c) 0 0) top right / var(--bracket) 1px,
+      linear-gradient(var(--c) 0 0) top right / 1px var(--bracket),
+      linear-gradient(var(--c) 0 0) bottom left / var(--bracket) 1px,
+      linear-gradient(var(--c) 0 0) bottom left / 1px var(--bracket),
+      linear-gradient(var(--c) 0 0) bottom right / var(--bracket) 1px,
+      linear-gradient(var(--c) 0 0) bottom right / 1px var(--bracket);
+    background-repeat: no-repeat;
+  }
+}
+
+/* Interactive HUD: brackets extend, frame lights up, a scan line passes. */
+@utility hud-hover {
+  overflow: hidden;
+  &:hover,
+  &:focus-visible {
+    --bracket: 22px;
+    border-color: var(--color-line-strong);
+  }
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(transparent, oklch(0.86 0.15 var(--hue) / 0.08), transparent);
+    transform: translateY(-100%);
+  }
+  &:hover::after {
+    animation: var(--animate-sweep);
+  }
+}
+
+/* Form control: text inputs and selects share one look, so a dropdown next
+   to a text field reads as the same kind of thing. Selects drop the native
+   chrome and draw their own chevron. */
+@utility control {
+  min-width: 0;
+  height: 2.5rem;
+  padding-inline: 0.75rem;
+  border: 1px solid var(--color-line);
+  border-radius: 0;
+  background-color: color-mix(in oklab, var(--color-void) 60%, transparent);
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1rem;
+  appearance: none;
+  transition: border-color 0.15s;
+
+  &::placeholder {
+    color: var(--color-ink-3);
+  }
+  &:hover {
+    border-color: var(--color-line-strong);
+  }
+  &:focus {
+    border-color: var(--color-signal);
+    outline: none;
+  }
+  &:is(select) {
+    padding-right: 2.25rem;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%237f8a94' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.85rem center;
+    background-size: 10px 6px;
+  }
+  & option,
+  & optgroup {
+    background-color: var(--color-void);
+    color: var(--color-ink);
+  }
+}
+
+/* Small mono label used everywhere: "01 // WORK", "STATUS", etc. */
+@utility label {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-ink-3);
+}
+
+@utility glow {
+  text-shadow: 0 0 24px oklch(0.86 0.15 var(--hue) / calc(var(--glow) / 100));
+}
+
+/* Angled-corner button. */
+@utility chamfer {
+  clip-path: polygon(
+    0 0,
+    calc(100% - 10px) 0,
+    100% 10px,
+    100% 100%,
+    10px 100%,
+    0 calc(100% - 10px)
+  );
+}
+
+html[data-scanlines="off"] .backdrop::after {
+  display: none;
+}
+
+/* Whole page in the mono face (site.mono). */
+html[data-mono="on"] body {
+  font-family: var(--font-mono);
+}
+
+/* A project the script highlighted: lit frame around its card. */
+[data-lit="true"] > a {
+  --bracket: 22px;
+  border-color: var(--color-signal);
+  box-shadow:
+    0 0 0 1px oklch(0.86 0.15 var(--hue) / 0.35),
+    0 0 28px -6px oklch(0.86 0.15 var(--hue) / 0.5);
+}
+
+/* ── Syntax highlighting (tree-sitter-eitri captures, see lib/eitri/highlight.ts) ── */
+.tk-kw {
+  color: var(--color-signal);
+}
+.tk-ctl {
+  color: var(--color-signal);
+  font-weight: 600;
+}
+.tk-fn {
+  color: oklch(0.92 0.09 calc(var(--hue) + 25));
+}
+.tk-ty {
+  color: var(--color-ok);
+}
+.tk-tyb {
+  color: oklch(0.78 0.13 150);
+}
+.tk-variant,
+.tk-ctor {
+  color: oklch(0.86 0.13 calc(var(--hue) + 60));
+}
+.tk-param {
+  color: var(--color-ink-2);
+  font-style: italic;
+}
+.tk-member {
+  color: oklch(0.88 0.06 var(--hue));
+}
+.tk-const,
+.tk-num {
+  color: oklch(0.84 0.14 calc(var(--hue) + 150));
+}
+.tk-str {
+  color: var(--color-warn);
+}
+.tk-esc {
+  color: oklch(0.92 0.14 60);
+}
+.tk-cm {
+  color: var(--color-ink-3);
+  font-style: italic;
+}
+.tk-op {
+  color: var(--color-ink-2);
+}
+.tk-punct {
+  color: var(--color-ink-3);
+}
+.tk-attr {
+  color: oklch(0.8 0.12 calc(var(--hue) - 70));
+}
+.tk-ns {
+  color: oklch(0.78 0.1 150);
+}
+.tk-label {
+  color: var(--color-warn);
+}
+
+/* ── Look knobs: crt, flicker, invert, cursor ── */
+.fx-crt {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  pointer-events: none;
+  border-radius: 26px / 20px;
+  background:
+    radial-gradient(ellipse at center, transparent 52%, oklch(0 0 0 / 0.5) 100%),
+    repeating-linear-gradient(transparent 0 2px, oklch(0 0 0 / 0.14) 2px 4px);
+  box-shadow:
+    inset 0 0 110px oklch(0 0 0 / 0.55),
+    inset 0 0 0 2px oklch(0 0 0 / 0.45);
+}
+html[data-crt] :is(main, header, footer) {
+  /* cheap chromatic fringe */
+  text-shadow:
+    0.6px 0 oklch(0.7 0.25 25 / 0.5),
+    -0.6px 0 oklch(0.8 0.15 220 / 0.5);
+}
+.fx-flicker {
+  position: fixed;
+  inset: 0;
+  z-index: 44;
+  pointer-events: none;
+  background: oklch(1 0 0);
+  opacity: 0;
+  animation: flicker 5s steps(1, end) infinite;
+}
+@keyframes flicker {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  7% {
+    opacity: 0.035;
+  }
+  9% {
+    opacity: 0;
+  }
+  41% {
+    opacity: 0.02;
+  }
+  43% {
+    opacity: 0;
+  }
+  72% {
+    opacity: 0.05;
+  }
+  73% {
+    opacity: 0.01;
+  }
+  74% {
+    opacity: 0;
+  }
+}
+
+/* The page inverts; the console, palette and toasts do not. */
+html[data-invert] :is(.backdrop, header, main, footer, [data-weather], [data-banner]) {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+html[data-cursor="crosshair"],
+html[data-cursor="crosshair"] * {
+  cursor: crosshair !important;
+}
+.fx-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 90;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--color-signal);
+  border-radius: 9999px;
+  pointer-events: none;
+  box-shadow: 0 0 14px oklch(0.86 0.15 var(--hue) / 0.4);
+  transform: translate3d(-100px, -100px, 0);
+  transition: border-color 0.2s;
+}
+
+/* ── One-shot effects (components/console/Fx.tsx) ── */
+html[data-glitch] :is(main, header, footer) {
+  animation: glitch var(--fx-ms, 400ms) steps(1, end) 1;
+}
+@keyframes glitch {
+  0%,
+  100% {
+    transform: none;
+    filter: none;
+  }
+  12% {
+    transform: translate(-3px, 1px);
+    filter: drop-shadow(3px 0 oklch(0.65 0.28 25 / 0.8))
+      drop-shadow(-3px 0 oklch(0.8 0.15 210 / 0.8));
+  }
+  27% {
+    transform: translate(4px, -1px) skewX(1.5deg);
+    filter: drop-shadow(-4px 0 oklch(0.65 0.28 25 / 0.8))
+      drop-shadow(4px 0 oklch(0.8 0.15 210 / 0.8));
+  }
+  41% {
+    transform: translate(-2px, 2px);
+    filter: none;
+  }
+  58% {
+    transform: translate(5px, 0) skewX(-2deg);
+    filter: drop-shadow(2px 0 oklch(0.65 0.28 25 / 0.8))
+      drop-shadow(-2px 0 oklch(0.8 0.15 210 / 0.8));
+  }
+  76% {
+    transform: translate(-1px, -1px);
+    filter: none;
+  }
+}
+.fx-slice {
+  animation: slice 0.12s steps(2, end) infinite;
+  backdrop-filter: hue-rotate(110deg) saturate(3);
+  background: oklch(0.86 0.15 var(--hue) / 0.08);
+}
+@keyframes slice {
+  0% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(var(--dx, 12px));
+  }
+  100% {
+    transform: translateX(calc(var(--dx, 12px) * -0.6));
+  }
+}
+html[data-shake] :is(main, header, footer, .backdrop) {
+  animation: shake 0.48s linear 1;
+}
+@keyframes shake {
+  0%,
+  100% {
+    transform: none;
+  }
+  10% {
+    transform: translate(calc(var(--shake, 4) * -1px), calc(var(--shake, 4) * 0.5px));
+  }
+  25% {
+    transform: translate(calc(var(--shake, 4) * 1px), calc(var(--shake, 4) * -0.6px));
+  }
+  40% {
+    transform: translate(calc(var(--shake, 4) * -0.8px), calc(var(--shake, 4) * -0.4px));
+  }
+  60% {
+    transform: translate(calc(var(--shake, 4) * 0.6px), calc(var(--shake, 4) * 0.6px));
+  }
+  80% {
+    transform: translate(calc(var(--shake, 4) * -0.3px), 0);
+  }
+}
+.fx-flash,
+.fx-scan,
+.fx-calm {
+  position: fixed;
+  z-index: 75;
+  pointer-events: none;
+}
+.fx-flash {
+  inset: 0;
+  background: oklch(0.86 0.15 var(--hue));
+  animation: flash 0.55s ease-out forwards;
+}
+@keyframes flash {
+  from {
+    opacity: 0.45;
+  }
+  to {
+    opacity: 0;
+  }
+}
+.fx-scan {
+  inset: 0 0 auto 0;
+  height: 140px;
+  background: linear-gradient(
+    transparent,
+    oklch(0.86 0.15 var(--hue) / 0.16) 85%,
+    var(--color-signal)
+  );
+  box-shadow: 0 6px 28px oklch(0.86 0.15 var(--hue) / 0.45);
+  animation: scan 1s ease-in forwards;
+}
+@keyframes scan {
+  from {
+    transform: translateY(-140px);
+  }
+  to {
+    transform: translateY(100vh);
+  }
+}
+/* Reduced motion: every effect collapses into this one soft outline. */
+.fx-calm {
+  border: 1px solid var(--color-signal);
+  box-shadow: inset 0 0 0 1px oklch(0.86 0.15 var(--hue) / 0.25);
+  animation: calm 0.7s ease-out forwards;
+}
+@keyframes calm {
+  from {
+    opacity: 0.8;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* fx.typeout caret */
+.caret::after {
+  content: "▌";
+  margin-left: 2px;
+  animation: blink 1s steps(1) infinite;
+}
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* ui.banner marquee: two copies, shifted by half the track. Stops on hover. */
+.banner-run {
+  animation: marquee 30s linear infinite;
+}
+.banner-track:hover .banner-run {
+  animation-play-state: paused;
+}
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *:not(.fx-calm),
+  *:not(.fx-calm)::before,
+  *:not(.fx-calm)::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .fx-flicker {
+    display: none;
+  }
+  .banner-run {
+    animation: none;
+    max-width: 100%;
+  }
+  .banner-run > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .banner-copy {
+    display: none;
+  }
+}
+
+/* Docked console (desktop): the page reflows into the space beside it. Page
+   layout uses container queries on <main>, so it adapts to that width rather
+   than the window's. */
+html[data-console="docked"] body {
+  padding-right: var(--console-w);
+}
+html[data-resizing] {
+  cursor: col-resize;
+  user-select: none;
+}
+html[data-console="docked"] .dock-aware {
+  right: calc(var(--console-w) + 1rem);
+}
+
+/* ── Documentation prose (app/docs, components/docs) ── */
+.prose-hud {
+  color: var(--color-ink-2);
+  font-size: 0.9375rem;
+  line-height: 1.7;
+}
+/* Readable measure for text; tables, figures and .wide blocks use the full column. */
+.prose-hud > * {
+  max-width: 70ch;
+}
+.prose-hud > :is(table, figure, .wide) {
+  max-width: none;
+}
+.prose-hud :is(p, ul, ol) {
+  margin: 0 0 1rem;
+}
+.prose-hud h1 {
+  margin: 0 0 1rem;
+  color: var(--color-ink);
+  font-size: clamp(1.875rem, 6cqi, 2.5rem);
+  font-weight: 600;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+}
+.prose-hud h2 {
+  position: relative;
+  margin: 3rem 0 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-line);
+  color: var(--color-ink);
+  font-size: 1.375rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  scroll-margin-top: 5rem;
+}
+.prose-hud h2::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 0;
+  width: 2.5rem;
+  height: 1px;
+  background: var(--color-signal);
+}
+.prose-hud h3 {
+  margin: 2rem 0 0.75rem;
+  color: var(--color-ink);
+  font-size: 1.0625rem;
+  font-weight: 600;
+  scroll-margin-top: 5rem;
+}
+.prose-hud :is(h2, h3) > a.anchor {
+  margin-left: 0.5rem;
+  color: var(--color-ink-3);
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  font-weight: 400;
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.prose-hud :is(h2, h3):is(:hover, :focus-within) > a.anchor {
+  opacity: 1;
+}
+.prose-hud strong {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+.prose-hud a:not(.plain) {
+  color: var(--color-signal);
+  text-decoration: underline;
+  text-decoration-color: var(--color-line-strong);
+  text-underline-offset: 3px;
+  transition: text-decoration-color 0.15s;
+}
+.prose-hud a:not(.plain):hover {
+  text-decoration-color: var(--color-signal);
+}
+.prose-hud ul {
+  padding-left: 0;
+  list-style: none;
+}
+.prose-hud ul > li {
+  position: relative;
+  padding-left: 1.25rem;
+}
+.prose-hud ul > li::before {
+  content: "";
+  position: absolute;
+  top: 0.8em;
+  left: 0.2rem;
+  width: 0.4rem;
+  height: 1px;
+  background: var(--color-signal);
+}
+.prose-hud ol {
+  padding-left: 1.5rem;
+  list-style: decimal;
+}
+.prose-hud ol > li::marker {
+  color: var(--color-ink-3);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+}
+.prose-hud li + li {
+  margin-top: 0.4rem;
+}
+.prose-hud :not(pre) > code {
+  padding: 0.1rem 0.35rem;
+  border: 1px solid var(--color-line);
+  background: var(--color-panel);
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  overflow-wrap: anywhere;
+}
+.prose-hud kbd {
+  display: inline-block;
+  min-width: 1.5rem;
+  padding: 0.05rem 0.4rem;
+  border: 1px solid var(--color-line-strong);
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  text-align: center;
+}
+.prose-hud table {
+  display: block;
+  max-width: 100%;
+  margin: 0 0 1.5rem;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+.prose-hud th {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--color-line-strong);
+  color: var(--color-ink-3);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  text-align: left;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.prose-hud td {
+  padding: 0.6rem 0.75rem;
+  border-top: 1px solid var(--color-line);
+  vertical-align: top;
+}
+.prose-hud tbody tr:first-child td {
+  border-top: 0;
+}
+.prose-hud td:first-child {
+  white-space: nowrap;
+}
+.prose-hud hr {
+  margin: 2.5rem 0;
+  border: 0;
+  border-top: 1px solid var(--color-line);
+}
+/* The "On this page" list: a row of links, not a bulleted list. */
+.prose-hud ul.toc {
+  margin: 0;
+}
+.prose-hud ul.toc > li {
+  margin: 0;
+  padding: 0;
+}
+.prose-hud ul.toc > li::before {
+  display: none;
+}
+/* Callouts: a note or a warning set into the text. */
+.callout {
+  margin: 1.5rem 0;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--color-line);
+  border-left: 2px solid var(--callout, var(--color-signal));
+  background: var(--color-panel);
+}
+.callout > :last-child {
+  margin-bottom: 0;
+}
+.callout[data-kind="warn"] {
+  --callout: var(--color-warn);
+}
+.callout > .label {
+  display: block;
+  margin-bottom: 0.35rem;
+  color: var(--callout, var(--color-signal));
+}
+
+/* SDK reference tables: wide enough to read side by side, stacked when <main> is narrow. */
+.prose-hud table.sig {
+  display: table;
+  width: 100%;
+}
+.prose-hud table.sig td:first-child {
+  width: 55%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.prose-hud table.sig tr {
+  scroll-margin-top: 5rem;
+}
+.prose-hud table.sig tr:target > td {
+  background: oklch(0.86 0.15 var(--hue) / 0.07);
+}
+@container (max-width: 41.99rem) {
+  .prose-hud table.sig,
+  .prose-hud table.sig tbody,
+  .prose-hud table.sig tr,
+  .prose-hud table.sig td {
+    display: block;
+    width: auto;
+  }
+  .prose-hud table.sig thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .prose-hud table.sig tr {
+    padding: 0.75rem 0;
+    border-top: 1px solid var(--color-line);
+  }
+  .prose-hud table.sig tbody tr:first-child {
+    border-top: 0;
+  }
+  .prose-hud table.sig td {
+    padding: 0.15rem 0;
+    border: 0;
+  }
+  .prose-hud table.sig td:first-child {
+    width: auto;
+  }
+}

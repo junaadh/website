@@ -1,0 +1,85 @@
+// site: the page, its content, and how scripts plug into it.
+//
+// Modelled on Rex's Lua API: a script registers actions (they show up in the
+// command palette and can be bound to keys), listens for events, and changes
+// the page. Look changes made at the top level describe the whole
+// customisation: each run starts from the default page. Handlers, timers and
+// actions stay alive after the script's last line until the next run.
+
+pub enum Status {
+    Active
+    Shipped
+    Experiment
+    Archived
+}
+
+pub struct Project {
+    pub slug: string
+    pub name: string
+    pub kind: string
+    pub year: i64
+    pub status: Status
+    pub featured: bool
+    pub stack: []string
+}
+
+pub struct Time {
+    pub hour: i64       // 0-23, Maldives time (UTC+5)
+    pub minute: i64
+    pub second: i64
+    pub weekday: i64    // 0 is Sunday
+}
+
+// What happened, for site.on handlers. Fields that do not apply are null.
+//   "project.hover"  "project.leave"  "project.click"   slug
+//   "section"        a section scrolled into view        section
+//   "key"            a key nobody bound was pressed       key ("shift+g")
+//   "idle"           no input for 30 seconds
+//   "active"         input again after idle
+//   "visible" "hidden"  the tab was shown or hidden
+//   "konami"         up up down down left right left right b a
+pub struct Event {
+    pub name: string
+    pub slug: ?string
+    pub section: ?string
+    pub key: ?string
+    pub x: f64          // pointer position, 0-1 across the viewport
+    pub y: f64
+}
+
+// A command, in the spirit of rex.action. Script action names are lowercase
+// letters, digits and underscores (no dots: dotted names are built in, such
+// as "console.open", "look.reset", "go.vyr", "section.work").
+pub struct Action {
+    pub name: string
+    pub title: string           // shown in the command palette
+    pub description: string
+    pub category: string        // palette group, "" means "Script"
+    pub keywords: []string
+    pub run: fn() -> void
+}
+
+// What the page knows.
+pub let projects: []Project
+pub let time: Time
+pub let visits: i64     // page loads that replayed a saved script, this one included
+
+// Commands and events.
+pub fn action(spec: Action) -> void
+pub fn invoke(name: string) -> void                     // run any action by name
+// The handler is optional only because a host function cannot take a plain
+// function value with a struct parameter; a lambda converts implicitly, and a
+// null handler is a fault.
+pub fn on(event: string, handler: ?fn(Event) -> void) -> void
+pub fn stop() -> void                                   // drop this script's actions, handlers, bindings and timers
+
+// Content.
+pub fn title(text: string) -> void          // the large name in the hero
+pub fn order(slugs: []string) -> void       // project order, unlisted ones follow
+pub fn hide(slug: string) -> void
+pub fn highlight(slug: string) -> void
+pub fn badge(slug: string, text: string) -> void    // a small tag on a project card
+pub fn readout(label: string, value: string) -> void // a row in the SYS.READOUT panel (same label replaces)
+pub fn goto(section: string) -> void        // scroll to "top", "work", "log", "systems" or "contact"
+pub fn open(slug: string) -> void           // go to a project page
+pub fn print(text: string) -> void          // console output

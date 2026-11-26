@@ -1,0 +1,30 @@
+// site/theme: the look. Top-level calls describe the whole look for a run.
+
+pub enum Weather {
+    Clear
+    Rain
+    Storm
+    Snow
+    Static
+    Aurora
+    Matrix
+}
+
+pub enum Cursor {
+    Default
+    Crosshair
+    Ring
+    Trail
+}
+
+pub fn hue(degrees: i64) -> void            // accent colour, 0-359
+pub fn weather(kind: Weather) -> void
+pub fn grid(size: i64) -> void              // backdrop grid cell in px, 0 hides it
+pub fn scanlines(on: bool) -> void
+pub fn glow(level: i64) -> void             // 0-100
+pub fn mono(on: bool) -> void               // the whole page in the mono face
+pub fn crt(on: bool) -> void                // curved-glass vignette and colour fringe
+pub fn flicker(on: bool) -> void            // faint phosphor flicker
+pub fn invert(on: bool) -> void
+pub fn cursor(kind: Cursor) -> void
+pub fn scale(percent: i64) -> void          // text size, 80-130
