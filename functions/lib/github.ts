@@ -104,8 +104,8 @@ function topLanguages(sizes: Map<string, { color: string; size: number }>) {
 }
 
 /**
- * With includePrivate, private repos the token can see count toward repos,
- * stars and languages (only the token owner's own, in practice). Their names
+ * With includePrivate (set only for the site owner's login), private repos the
+ * token can see count toward repos, stars and languages. Their names
  * and descriptions never reach the card: the top list is public repos only.
  */
 async function viaGraphql(

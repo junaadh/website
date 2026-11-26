@@ -11,6 +11,7 @@
 // Errors are never cached. Script diagnostics come back as a 200 SVG so they
 // show up in a README; data errors keep their status (with an SVG body).
 
+import profile from "../../../content/profile.json";
 import { renderError } from "../../../lib/card/error";
 import { renderScript } from "../../../lib/card/pipeline";
 import { DEFAULT_PRESET, PRESETS, presetById } from "../../../lib/card/presets";
@@ -70,6 +71,13 @@ const entryTtl = (e: DataEntry) =>
  * and rate-limit or upstream failures for a minute, so a loop of bad requests
  * cannot hammer GitHub (or burn the token's rate limit).
  */
+/** The site owner's login, from the profile's GitHub link. */
+const OWNER = new URL(profile.links.github).pathname.split("/")[1]?.toLowerCase() ?? "";
+
+/** Private repos count only on the site owner's own card, and only unless GITHUB_PRIVATE=false. */
+const includePrivate = (login: string, env: Env) =>
+  login.toLowerCase() === OWNER && env.GITHUB_PRIVATE !== "false";
+
 async function userData(login: string, env: Env): Promise<Fetched> {
   const key = dataKey("github-v4", login.toLowerCase());
   const hit = await getJson<DataEntry>(key);
@@ -83,7 +91,7 @@ async function userData(login: string, env: Env): Promise<Fetched> {
     const fetched = await fetchCardUser(
       login,
       env.GITHUB_TOKEN || undefined,
-      env.GITHUB_PRIVATE !== "false",
+      includePrivate(login, env),
     );
     await putJson(key, { kind: "data", fetched } satisfies DataEntry, HOUR);
     return fetched;
