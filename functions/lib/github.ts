@@ -238,10 +238,12 @@ async function viaRest(login: string): Promise<CardUser> {
     stars += r.stargazers_count;
     forks += r.forks_count;
     if (!r.language) continue;
+    // REST has no per-language bytes, and a repo's size counts its whole
+    // history and assets (a dotfiles repo full of images would win), so each
+    // repo votes once for its primary language instead.
     const seen = sizes.get(r.language);
-    const size = Math.max(1, r.size); // the repo's size stands in for per-language bytes
-    if (seen) seen.size += size;
-    else sizes.set(r.language, { color: COLORS[r.language] ?? FALLBACK_COLOR, size });
+    if (seen) seen.size += 1;
+    else sizes.set(r.language, { color: COLORS[r.language] ?? FALLBACK_COLOR, size: 1 });
   }
   const top = [...repos].sort((a, b) => b.stargazers_count - a.stargazers_count).slice(0, 6);
   return {

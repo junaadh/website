@@ -71,7 +71,7 @@ const entryTtl = (e: DataEntry) =>
  * cannot hammer GitHub (or burn the token's rate limit).
  */
 async function userData(login: string, env: Env): Promise<Fetched> {
-  const key = dataKey("github-v2", login.toLowerCase());
+  const key = dataKey("github-v3", login.toLowerCase());
   const hit = await getJson<DataEntry>(key);
   if (hit && (hit.value.kind === "data" || hit.value.kind === "error")) {
     if (hit.age < entryTtl(hit.value) * 1000) {
