@@ -11,6 +11,7 @@ export const metadata: Metadata = pageMeta({
   description:
     "GET /api/card/<login>.svg and .json, POST /api/card/scripts, caching, headers and errors.",
   path: "/docs/card/api/",
+  image: "/docs/opengraph-image",
 });
 
 const SITE = profile.links.website;

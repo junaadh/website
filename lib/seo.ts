@@ -21,12 +21,19 @@ export function pageMeta({
   title,
   description,
   path,
+  image,
 }: {
   title: string;
   description: string;
   path: string;
+  /** A parent segment's image, for pages without their own opengraph-image:
+   *  setting openGraph here would otherwise drop the inherited one. */
+  image?: string;
 }): Metadata {
   const url = canonical(path);
+  const images = image
+    ? [{ url: image, width: 1200, height: 630, type: "image/png", alt: fullTitle(title) }]
+    : undefined;
   return {
     title,
     description,
@@ -38,7 +45,13 @@ export function pageMeta({
       locale: "en_US",
       title: fullTitle(title),
       description,
+      ...(images && { images }),
     },
-    twitter: { card: "summary_large_image", title: fullTitle(title), description },
+    twitter: {
+      card: "summary_large_image",
+      title: fullTitle(title),
+      description,
+      ...(images && { images }),
+    },
   };
 }

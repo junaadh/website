@@ -9,6 +9,7 @@ export const metadata: Metadata = pageMeta({
   description:
     "Every module, function and type a script can use, generated from the declaration files.",
   path: "/docs/sdk/",
+  image: "/docs/opengraph-image",
 });
 
 export default function SdkIndex() {

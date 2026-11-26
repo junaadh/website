@@ -13,6 +13,7 @@ export const metadata: Metadata = pageMeta({
   description:
     "The Eitri console: opening it, the editor, the output tabs, examples, sharing, saved scripts, safe mode and limits.",
   path: "/docs/console/",
+  image: "/docs/opengraph-image",
 });
 
 const TOUR = `import site from "site"
