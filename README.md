@@ -27,25 +27,25 @@ WebAssembly. It also has a GitHub profile card API that runs the same language a
 
 Live cards for this account, one per preset:
 
-| | |
-| :---: | :---: |
-| ![classic](https://junaadh.com/api/card/junaadh.svg?preset=classic) <br> `classic` | ![languages](https://junaadh.com/api/card/junaadh.svg?preset=languages) <br> `languages` |
-| ![heatmap](https://junaadh.com/api/card/junaadh.svg?preset=heatmap) <br> `heatmap` | ![terminal](https://junaadh.com/api/card/junaadh.svg?preset=terminal) <br> `terminal` |
-| ![synthwave](https://junaadh.com/api/card/junaadh.svg?preset=synthwave) <br> `synthwave` | ![repos](https://junaadh.com/api/card/junaadh.svg?preset=repos) <br> `repos` |
-| ![minimal](https://junaadh.com/api/card/junaadh.svg?preset=minimal) <br> `minimal` | ![badge](https://junaadh.com/api/card/junaadh.svg?preset=badge) <br> `badge` |
+|                                                                                          |                                                                                          |
+| :--------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------: |
+|    ![classic](https://junaadh.com/api/card/junaadh.svg?preset=classic) <br> `classic`    | ![languages](https://junaadh.com/api/card/junaadh.svg?preset=languages) <br> `languages` |
+|    ![heatmap](https://junaadh.com/api/card/junaadh.svg?preset=heatmap) <br> `heatmap`    |  ![terminal](https://junaadh.com/api/card/junaadh.svg?preset=terminal) <br> `terminal`   |
+| ![synthwave](https://junaadh.com/api/card/junaadh.svg?preset=synthwave) <br> `synthwave` |       ![repos](https://junaadh.com/api/card/junaadh.svg?preset=repos) <br> `repos`       |
+|    ![minimal](https://junaadh.com/api/card/junaadh.svg?preset=minimal) <br> `minimal`    |       ![badge](https://junaadh.com/api/card/junaadh.svg?preset=badge) <br> `badge`       |
 
 Every preset is an Eitri script. Open one in the [card studio](https://junaadh.com/card/) to edit it.
 
 ## Tech stack
 
-| Area | Choice |
-| --- | --- |
-| Framework | Next.js 16 (App Router, static export), React 19 |
-| Language | TypeScript 7 |
-| Styling | Tailwind CSS 4 |
-| Runtime for scripts | Eitri compiled to `wasm32`, `web-tree-sitter` for highlighting |
-| Hosting | Cloudflare Pages, with Pages Functions for the card API and KV for short links |
-| Tooling | Bun, Biome, oxlint, Typst (pinned and checksum-verified) |
+| Area                | Choice                                                                         |
+| ------------------- | ------------------------------------------------------------------------------ |
+| Framework           | Next.js 16 (App Router, static export), React 19                               |
+| Language            | TypeScript 7                                                                   |
+| Styling             | Tailwind CSS 4                                                                 |
+| Runtime for scripts | Eitri compiled to `wasm32`, `web-tree-sitter` for highlighting                 |
+| Hosting             | Cloudflare Pages, with Pages Functions for the card API and KV for short links |
+| Tooling             | Bun, Biome, oxlint, Typst (pinned and checksum-verified)                       |
 
 ## Getting started
 
@@ -65,13 +65,13 @@ bun run dev:api                  # http://localhost:8788
 
 ### Scripts
 
-| Command | What it does |
-| --- | --- |
-| `bun run dev` | Development server |
-| `bun run build` | Renders the CV and builds the static site into `out/` |
-| `bun run check` | Runs Biome, oxlint, `tsc` for the app and the Functions, and the docs sample checker |
-| `bun run cv` | Renders `public/cv.pdf` on its own |
-| `bun run dev:api` | Builds the site and serves it with the Functions via `wrangler pages dev` |
+| Command           | What it does                                                                         |
+| ----------------- | ------------------------------------------------------------------------------------ |
+| `bun run dev`     | Development server                                                                   |
+| `bun run build`   | Renders the CV and builds the static site into `out/`                                |
+| `bun run check`   | Runs Biome, oxlint, `tsc` for the app and the Functions, and the docs sample checker |
+| `bun run cv`      | Renders `public/cv.pdf` on its own                                                   |
+| `bun run dev:api` | Builds the site and serves it with the Functions via `wrangler pages dev`            |
 
 ## Project structure
 
@@ -91,14 +91,14 @@ scripts/            Asset sync, CV build and the docs sample checker
 
 ## Configuration
 
-The card API reads these from the Pages project (*Settings → Variables and Secrets*). For local
+The card API reads these from the Pages project (_Settings → Variables and Secrets_). For local
 development they go in `.dev.vars`.
 
-| Name | Kind | Purpose |
-| --- | --- | --- |
-| `GITHUB_TOKEN` | Secret, optional | A fine-grained token with **Metadata: Read-only** on all repositories. Without it the API uses public endpoints only and leaves contributed-to empty. |
-| `GITHUB_PRIVATE` | Variable, optional | Set to `false` to keep private repositories out of the owner's card. |
-| `CARDS` | KV binding, optional | Stores saved card scripts for short `?script=<id>` links. Without it the studio falls back to long `?s=` links. |
+| Name             | Kind                 | Purpose                                                                                                                                               |
+| ---------------- | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GITHUB_TOKEN`   | Secret, optional     | A fine-grained token with **Metadata: Read-only** on all repositories. Without it the API uses public endpoints only and leaves contributed-to empty. |
+| `GITHUB_PRIVATE` | Variable, optional   | Set to `false` to keep private repositories out of the owner's card.                                                                                  |
+| `CARDS`          | KV binding, optional | Stores saved card scripts for short `?script=<id>` links. Without it the studio falls back to long `?s=` links.                                       |
 
 Private repositories count only on the card of the login named in `content/profile.json`. Their
 names never appear on the card.
@@ -109,11 +109,11 @@ names never appear on the card.
 ![GitHub card](https://junaadh.com/api/card/<login>.svg?preset=classic)
 ```
 
-| Endpoint | Description |
-| --- | --- |
-| `GET /api/card/<login>.svg` | Renders a card. Use `?preset=<id>`, `?script=<id>` or `?s=<encoded script>`; other query parameters are passed to the script. |
-| `GET /api/card/<login>.json` | The normalised profile data a script receives. |
-| `POST /api/card/scripts` | Saves a script (same origin only, up to 16 KB, only if it renders) and returns `{ "id" }`. |
+| Endpoint                     | Description                                                                                                                   |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `GET /api/card/<login>.svg`  | Renders a card. Use `?preset=<id>`, `?script=<id>` or `?s=<encoded script>`; other query parameters are passed to the script. |
+| `GET /api/card/<login>.json` | The normalised profile data a script receives.                                                                                |
+| `POST /api/card/scripts`     | Saves a script (same origin only, up to 16 KB, only if it renders) and returns `{ "id" }`.                                    |
 
 The full reference is at [junaadh.com/docs/card/api](https://junaadh.com/docs/card/api/).
 
