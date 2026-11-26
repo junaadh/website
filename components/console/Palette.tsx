@@ -200,8 +200,20 @@ function PaletteDialog() {
           <span className="label text-signal">
             {kind === "command" ? `CMD // ${title}` : title}
           </span>
-          <span className="label hidden sm:inline">
-            Esc {kind === "command" ? "closes" : "dismisses"}
+          <span className="flex items-center gap-3">
+            {prompt && (
+              <button
+                type="button"
+                onClick={engine.reset}
+                className="label border border-line px-2 py-1 transition-colors hover:border-err hover:text-err"
+                title="Clear the saved script and restore the page"
+              >
+                Reset site
+              </button>
+            )}
+            <span className="label hidden sm:inline">
+              Esc {kind === "command" ? "closes" : "dismisses"}
+            </span>
           </span>
         </div>
         <div className="flex items-center gap-3 border-b border-line px-4 py-3">

@@ -7,6 +7,7 @@ import { Sample } from "@/components/docs/Sample";
 import { Signature, TypeText } from "@/components/docs/Signature";
 import { docBlocks, docText } from "@/lib/docs/eith";
 import { type SdkModule, sdkModule, sdkModules } from "@/lib/docs/sdk";
+import { pageMeta } from "@/lib/seo";
 
 export const dynamicParams = false;
 export const generateStaticParams = () => sdkModules().map((m) => ({ module: m.slug }));
@@ -21,7 +22,13 @@ const lead = (m: SdkModule) => {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const m = sdkModule((await params).module);
-  return m ? { title: `${m.path} (SDK)`, description: m.info.summary } : {};
+  return m
+    ? pageMeta({
+        title: `Docs: ${m.path} (SDK)`,
+        description: m.info.summary,
+        path: `/docs/sdk/${m.slug}/`,
+      })
+    : {};
 }
 
 const slugify = (text: string) =>

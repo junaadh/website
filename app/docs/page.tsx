@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Callout, DocHeader, H2, OnThisPage, Pager } from "@/components/docs/Doc";
 import { Sample } from "@/components/docs/Sample";
+import { pageMeta } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Overview",
+export const metadata: Metadata = pageMeta({
+  title: "Docs: Overview",
   description: "What this site is, the three ways to use it, and where your scripts live.",
-};
+  path: "/docs/",
+});
 
 const entries = [
   {

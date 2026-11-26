@@ -5,6 +5,19 @@
 // left. Colours are "#rgb", "#rrggbb", "#rrggbbaa", "none", or "@name" for a
 // gradient made with card.gradient. The pen is stateful: set fill, stroke,
 // font and alignment, then draw. Everything is clamped to the card.
+//
+// Limits. A render is cut short with a runtime error, never silently
+// truncated, when it passes any of these:
+//   - a string argument over 4096 bytes, an array argument over 400 elements
+//   - more than 2000 drawing calls, or 256 KiB of drawing output
+//   - about 200,000 steps (loop turns and calls), 6 MB of memory (compiling a card alone takes up to 3)
+//   - more than 20,000 units of host calls: a call costs 1, reading card.user
+//     costs 20 because it copies the whole profile. Read it once:
+//     let u = card.user
+//   - native work counts as steps too: an array insert or remove moves one
+//     step per 16 elements, a string search or count one step per 32 bytes
+// Text from GitHub (login, name, bio, location, repo and language names) and
+// URL parameters are cut to 1024 bytes before the script sees them.
 
 pub struct Language {
     pub name: string

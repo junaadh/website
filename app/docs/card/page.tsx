@@ -6,12 +6,14 @@ import { Diagnostic, Sample } from "@/components/docs/Sample";
 import { PRESETS } from "@/lib/card/presets";
 import { renderCardSvg, svgDataUrl } from "@/lib/docs/render";
 import { profile } from "@/lib/profile";
+import { pageMeta } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Card studio",
+export const metadata: Metadata = pageMeta({
+  title: "Docs: Card studio guide",
   description:
     "Design a GitHub profile card in Eitri: the studio, presets, the drawing model, charts, embedding and the security model.",
-};
+  path: "/docs/card/",
+});
 
 const SITE = profile.links.website;
 

@@ -5,6 +5,7 @@ import { Banner } from "@/components/console/Banner";
 import { SiteProvider } from "@/components/console/SiteProvider";
 import { TopBar } from "@/components/hud/TopBar";
 import { profile, projectData } from "@/lib/profile";
+import { KEYWORDS, SITE_NAME } from "@/lib/seo";
 import "./globals.css";
 
 const sans = Geist({ subsets: ["latin"], variable: "--font-geist" });
@@ -12,14 +13,45 @@ const mono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(profile.links.website),
-  title: { default: profile.meta.title, template: `%s — ${profile.person.name}` },
+  applicationName: SITE_NAME,
+  title: { default: profile.meta.title, template: `%s · ${profile.person.name}` },
   description: profile.meta.description,
+  keywords: KEYWORDS,
+  authors: [{ name: profile.person.fullName, url: profile.links.website }],
+  creator: profile.person.fullName,
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    url: "/",
+    siteName: SITE_NAME,
+    locale: "en_US",
+    title: profile.meta.title,
+    description: profile.meta.description,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: profile.meta.title,
+    description: profile.meta.description,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 },
+  },
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "48x48" },
+    ],
+    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
+  },
+  manifest: "/manifest.webmanifest",
 };
 
 // Build year: the site is static, so this is when it was last deployed.
 const YEAR = new Date().getFullYear();
 
-export const viewport: Viewport = { themeColor: "#05080c" };
+export const viewport: Viewport = { themeColor: "#03060b", colorScheme: "dark" };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (

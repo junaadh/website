@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CardStudio } from "@/components/card/CardStudio";
 import { SectionHeader } from "@/components/hud/SectionHeader";
+import { pageMeta } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMeta({
   title: "Card studio",
   description: "Design a GitHub profile card with Eitri and embed it as an SVG.",
-};
+  path: "/card/",
+});
 
 export default function CardPage() {
   return (

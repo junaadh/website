@@ -82,6 +82,7 @@ export const MODULE_INFO: Record<string, ModuleInfo> = {
     summary: "The look: accent colour, weather, grid, glow and screen effects.",
     limits: [
       "hue wraps around 360. grid is clamped to 16-160 px, and 0 hides it. glow is clamped to 0-100 and scale to 80-130.",
+      "theme.invert and theme.flicker count against the 2-per-second flash budget (extra flips are dropped). With prefers-reduced-motion set, flicker is ignored, and invert only changes when the visitor caused it (a key, the palette or Run), not from a timer or event.",
       "A look is described by the top level of a script: each run starts from the default look, so a theme call inside a callback changes the live page but is gone at the next run.",
     ],
     samples: ["theme-look"],
@@ -90,6 +91,7 @@ export const MODULE_INFO: Record<string, ModuleInfo> = {
     summary: "One-shot effects: glitch, shake, flash, sparks, scan, decode and typeout.",
     limits: [
       "glitch is clamped to 50-2000 ms and shake to 1-10. typeout text is cut to 120 characters.",
+      "Flashes share a budget with look flips (theme.invert, theme.flicker): at most 2 per second across the whole page, extras are dropped. With prefers-reduced-motion set, fx.flash does nothing.",
       "A single run or callback plays at most 24 one-shot effects (effects, toasts, sounds and navigation together).",
       "With prefers-reduced-motion set, every effect becomes one soft outline flash.",
     ],
@@ -101,6 +103,7 @@ export const MODULE_INFO: Record<string, ModuleInfo> = {
       "Toasts are cut to 160 characters, the banner to 200.",
       "A pick shows up to 200 items; titles, placeholders and item fields are cut to 60 or 80 characters, and the confirm label to 16.",
       "Only one prompt is open at a time: opening another answers the first with null.",
+      "Prompts and the palette opened by a timer or event (not by a key, the palette or Run) are refused while one is open and for 5 seconds after the last one. The visitor can press Escape twice, or use Reset site in the prompt, to clear the script.",
     ],
     samples: ["ui-prompts"],
   },
@@ -109,7 +112,7 @@ export const MODULE_INFO: Record<string, ModuleInfo> = {
     limits: [
       "At most 128 bindings. A binding string is at most 64 characters, with at most 4 keys in a sequence and 1 second allowed between them.",
       "Modifiers are ctrl, alt, shift and meta (also control, option, opt, cmd, command and super). Named keys include escape, enter, space, tab, backspace, up, down, left and right.",
-      "ctrl+k, meta+k and the backtick belong to the page and cannot be bound. Keys are ignored while the visitor is typing in a field, and while the console or palette is open.",
+      "Reserved keys cannot be bound, and a bind to one is ignored with an error line in the console output: every ctrl, alt and meta chord, enter, space, tab, escape, f1 to f12 and the backtick. Plain keys, shift+keys and sequences of them are fine. Keys are ignored while the visitor is typing in a field, and while the console or palette is open.",
       "A mode name is a lowercase letter followed by up to 15 letters, digits or underscores. An exclusive mode ignores the global bindings and swallows keys nobody bound.",
     ],
     samples: ["keys-bindings"],

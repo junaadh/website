@@ -2,11 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Callout, DocHeader, H2, OnThisPage, Pager } from "@/components/docs/Doc";
 import { Diagnostic, Sample } from "@/components/docs/Sample";
+import { pageMeta } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Eitri language",
+export const metadata: Metadata = pageMeta({
+  title: "Docs: Eitri language",
   description: "A short tour of Eitri for JavaScript and TypeScript developers.",
-};
+  path: "/docs/eitri/",
+});
 
 export default function EitriDocs() {
   return (

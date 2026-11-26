@@ -1,0 +1,8 @@
+/* TEAM */
+Developer: Moosa Junad
+Site: https://junaadh.com
+Location: Addu City, Maldives
+
+/* SITE */
+Built with: Next.js, React, TypeScript, Tailwind CSS, Eitri (WebAssembly)
+Hosted on: Cloudflare Pages

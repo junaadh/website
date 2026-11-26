@@ -33,4 +33,11 @@ bun run build    # static site in out/
   in `lib/docs/samples.ts`; `scripts/check-docs.mjs` (part of `bun run check`) runs them all, the
   console examples and the card presets against `public/eitri/eitri.wasm`, so a sample that stops
   compiling fails the check. Card samples are also drawn at build time for the bundled sample profile.
-- **Cloudflare Pages:** build command `bun run build`, output directory `out`.
+- **Cloudflare Pages:** build command `bun run build`, output directory `out`. `public/_headers` sets
+  the CSP, nosniff, referrer and permissions policies for the static files (Pages Functions, so the
+  `/api/card/*` responses, set their own headers). Rate limiting for `POST /api/card/scripts` belongs
+  in an edge rule, and saved short-link scripts are deliberately kept forever.
+- **Metadata:** `lib/seo.ts` builds each page's title, canonical and Open Graph/Twitter cards. Preview
+  images are `opengraph-image.tsx` files drawn at build time by `lib/og.tsx`; `robots.ts`,
+  `sitemap.ts` and `manifest.ts` are static routes, and `public/.well-known/security.txt` (expires
+  2027-11-26) needs renewing before then.

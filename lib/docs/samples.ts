@@ -668,10 +668,10 @@ let count = site.projects.len()
 site.print(count)
 `,
     report: `error[E0301]: type mismatch: expected \`string\`, found \`i64\`
-  --> script.eit:4:12
-  |
-4 | site.print(count)
-  |            ^^^^^`,
+  ╭─ script.eit:4:12
+  │
+4 │ site.print(count)
+  │            ^^^^^`,
   },
   {
     id: "diag-fault",
@@ -684,10 +684,10 @@ n = n + 1
 site.print("\${n}")
 `,
     report: `fault: integer overflow
-  --> script.eit:4:5
-  |
-4 | n = n + 1
-  |     ^^^^^ in \`<module>\``,
+  ╭─ script.eit:4:5
+  │
+4 │ n = n + 1
+  │     ^^^^^ in \`<module>\``,
   },
   {
     id: "diag-missing-field",
@@ -702,15 +702,15 @@ site.action(site.Action {
 })
 `,
     report: `error[E0301]: missing struct field
-  --> script.eit:3:13
-  |
-3 |   site.action(site.Action {
-  | /-------------^
-4 | |     name: "hello",
-5 | |     title: "Say hello",
-6 | |     run: () => site.print("hello"),
-7 | | })
-  | \\-^`,
+  ╭─ script.eit:3:13
+  │
+3 │   site.action(site.Action {
+  │ ╭─────────────^
+4 │ │     name: "hello",
+5 │ │     title: "Say hello",
+6 │ │     run: () => site.print("hello"),
+7 │ │ })
+  │ ╰─^`,
   },
   {
     id: "diag-match",
@@ -729,14 +729,14 @@ fn mood(w: theme.Weather) -> string {
 site.print(mood(.Rain))
 `,
     report: `error[E0301]: non-exhaustive match
-  --> script.eit:5:12
-  |
-5 |       return match w {
-  | /------------^
-6 | |         .Rain => "wet"
-7 | |         .Clear => "dry"
-8 | |     }
-  | \\-----^`,
+  ╭─ script.eit:5:12
+  │
+5 │       return match w {
+  │ ╭────────────^
+6 │ │         .Rain => "wet"
+7 │ │         .Clear => "dry"
+8 │ │     }
+  │ ╰─────^`,
   },
   {
     id: "diag-card",
@@ -749,10 +749,10 @@ card.size(420, 120)
 card.text(24, 40, 42)
 `,
     report: `error[E0301]: type mismatch: expected \`string\`, found \`i64\`
-  --> script.eit:4:19
-  |
-4 | card.text(24, 40, 42)
-  |                   ^^`,
+  ╭─ script.eit:4:19
+  │
+4 │ card.text(24, 40, 42)
+  │                   ^^`,
   },
 ];
 

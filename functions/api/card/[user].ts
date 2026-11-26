@@ -6,6 +6,8 @@
 //   ?s=<encoded>        a script carried in the URL (lib/card/share.ts), when not saved
 //   ?<anything else>    handed to the script as card.param(name, fallback), up to 16
 //
+// The query string is capped at 2 KB besides the s value (414 beyond that).
+//
 // Errors are never cached. Script diagnostics come back as a 200 SVG so they
 // show up in a README; data errors keep their status (with an SVG body).
 
@@ -23,9 +25,15 @@ const LOGIN = /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$/;
 const PARAM_KEY = /^[A-Za-z0-9_.-]{1,32}$/;
 const MAX_PARAMS = 16;
 const MAX_VALUE = 100;
+/** The query string without the s value; s has its own cap (MAX_ENCODED). */
+const MAX_QUERY = 2048;
 
 const HOUR = 3600;
 const DAY = 86_400;
+/** GitHub says there is no such user: ask again in 10 minutes. */
+const NOT_FOUND_TTL = 600;
+/** Rate limits and upstream failures: ask again in a minute. */
+const UPSTREAM_TTL = 60;
 
 const SVG_HEADERS = {
   "content-type": "image/svg+xml; charset=utf-8",
@@ -38,7 +46,10 @@ type Kind = "svg" | "json";
 
 function fail(kind: Kind, status: number, message: string): Response {
   if (kind === "json") {
-    return Response.json({ error: message }, { status, headers: NO_STORE });
+    return Response.json(
+      { error: message },
+      { status, headers: { ...NO_STORE, "x-content-type-options": "nosniff" } },
+    );
   }
   return new Response(renderError(message, "eitri // card api"), {
     status,
@@ -46,14 +57,39 @@ function fail(kind: Kind, status: number, message: string): Response {
   });
 }
 
-/** GitHub data for a login, from the cache (1 h) or GitHub. */
+/** What the data cache holds for a login: the data, or the failure GitHub gave. */
+type DataEntry =
+  | { kind: "data"; fetched: Fetched }
+  | { kind: "error"; status: number; message: string };
+
+const entryTtl = (e: DataEntry) =>
+  e.kind === "data" ? HOUR : e.status === 404 ? NOT_FOUND_TTL : UPSTREAM_TTL;
+
+/**
+ * GitHub data for a login. Cached for an hour; "no such user" for 10 minutes
+ * and rate-limit or upstream failures for a minute, so a loop of bad requests
+ * cannot hammer GitHub (or burn the token's rate limit).
+ */
 async function userData(login: string, env: Env): Promise<Fetched> {
-  const key = dataKey("github", login.toLowerCase());
-  const hit = await getJson<Fetched>(key);
-  if (hit && hit.age < HOUR * 1000) return hit.value;
-  const fresh = await fetchCardUser(login, env.GITHUB_TOKEN || undefined);
-  await putJson(key, fresh, HOUR);
-  return fresh;
+  const key = dataKey("github-v2", login.toLowerCase());
+  const hit = await getJson<DataEntry>(key);
+  if (hit && (hit.value.kind === "data" || hit.value.kind === "error")) {
+    if (hit.age < entryTtl(hit.value) * 1000) {
+      if (hit.value.kind === "data") return hit.value.fetched;
+      throw new GitHubError(hit.value.status, hit.value.message);
+    }
+  }
+  try {
+    const fetched = await fetchCardUser(login, env.GITHUB_TOKEN || undefined);
+    await putJson(key, { kind: "data", fetched } satisfies DataEntry, HOUR);
+    return fetched;
+  } catch (error) {
+    const failure =
+      error instanceof GitHubError ? error : new GitHubError(502, "GitHub could not be reached");
+    const entry: DataEntry = { kind: "error", status: failure.status, message: failure.message };
+    await putJson(key, entry, entryTtl(entry)).catch(() => {});
+    throw failure;
+  }
 }
 
 interface Request_ {
@@ -113,21 +149,34 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env, params, w
   const login = match?.[1] ?? "";
   if (!LOGIN.test(login)) return fail(kind, 400, "That is not a valid GitHub username.");
 
+  const url = new URL(request.url);
+  const shared = url.searchParams.get("s") ?? "";
+  if (
+    url.search.length - shared.length > MAX_QUERY ||
+    url.search.length > MAX_QUERY + MAX_ENCODED + 8
+  ) {
+    return fail(kind, 414, `The query string is too long (${MAX_QUERY} characters besides s).`);
+  }
+
   try {
     if (kind === "json") {
       const { user, source } = await userData(login, env);
       return Response.json(user satisfies CardUser, {
-        headers: { "cache-control": `public, max-age=${HOUR}`, "x-card-source": source },
+        headers: {
+          "cache-control": `public, max-age=${HOUR}`,
+          "x-card-source": source,
+          "x-content-type-options": "nosniff",
+        },
       });
     }
 
-    const url = new URL(request.url);
-    const query = await parseQuery(url, env);
-    if (typeof query === "string") return fail("svg", 400, query);
-
+    // The cache key comes from the raw, normalised query: a hit costs no KV read and no decoding.
+    // Only cards that rendered cleanly are ever stored, so a hit is always a good card.
     const key = svgKey(url, login);
     const cached = await getResponse(key);
     const refresh = async () => {
+      const query = await parseQuery(url, env);
+      if (typeof query === "string") return;
       const { svg, ok, source } = await draw(login, query, env);
       if (ok) await putResponse(key, svg, okHeaders(source), DAY);
     };
@@ -139,6 +188,8 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env, params, w
       });
     }
 
+    const query = await parseQuery(url, env);
+    if (typeof query === "string") return fail("svg", 400, query);
     const { svg, ok, source } = await draw(login, query, env);
     if (!ok) return new Response(svg, { headers: { ...SVG_HEADERS, ...NO_STORE } });
     waitUntil(putResponse(key, svg, okHeaders(source), DAY));
