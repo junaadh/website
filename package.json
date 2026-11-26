@@ -12,7 +12,8 @@
     "start": "bunx serve out",
     "lint": "oxlint",
     "format": "biome format --write .",
-    "check": "biome check . && oxlint && tsc --noEmit"
+    "check": "biome check . && oxlint && tsc --noEmit",
+    "cv": "node scripts/build-cv.mjs"
   },
   "dependencies": {
     "next": "^16.4.6",

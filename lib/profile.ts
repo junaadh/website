@@ -42,7 +42,7 @@ export interface Profile {
     intro: string;
     about: string;
   };
-  links: { email: string; github: string; cv: string };
+  links: { email: string; github: string; website: string; cv: string };
   meta: { title: string; description: string };
   projects: Project[];
   experience: Role[];

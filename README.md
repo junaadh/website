@@ -1,4 +1,4 @@
-# junaadh.dev
+# junaadh.com
 
 Personal site. Next.js (App Router, static export) on Cloudflare Pages.
 

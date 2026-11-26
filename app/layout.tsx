@@ -11,6 +11,7 @@ const sans = Geist({ subsets: ["latin"], variable: "--font-geist" });
 const mono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono" });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(profile.links.website),
   title: { default: profile.meta.title, template: `%s — ${profile.person.name}` },
   description: profile.meta.description,
 };
