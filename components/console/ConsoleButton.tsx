@@ -7,7 +7,7 @@ const noSubscribe = () => () => {};
 const isMac = () => /mac|iphone|ipad/i.test(navigator.platform || navigator.userAgent);
 
 const button =
-  "label flex h-8 items-center gap-2 border border-line-strong px-2.5 transition-colors hover:border-signal hover:text-signal @xl:px-3";
+  "label flex h-8 items-center gap-2 border border-line-strong px-2 transition-colors hover:border-signal hover:text-signal @xl:px-3";
 const kbd =
   "hidden min-w-9 border border-line px-1.5 py-0.5 text-center font-mono text-[0.625rem] text-ink-3 @5xl:inline-block";
 
@@ -24,7 +24,7 @@ export function ConsoleButton() {
   );
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-1.5 @xl:gap-2">
       <button
         type="button"
         onClick={engine.openPalette}

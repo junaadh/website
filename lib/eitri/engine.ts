@@ -512,6 +512,14 @@ export class Engine {
     if (this.slugs.has(slug)) this.host.navigate(`/work/${slug}/`);
   }
 
+  openCard(): void {
+    this.host.navigate("/card/");
+  }
+
+  openDocs(): void {
+    this.host.navigate("/docs/");
+  }
+
   // ── prompts ────────────────────────────────────────────────────────────
   /** The visitor answered (a value) or dismissed (null) the open prompt. */
   answerPrompt = (value: string | null): void => {

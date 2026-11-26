@@ -40,6 +40,22 @@ export function builtinActions(engine: Engine): Builtin[] {
       () => engine.openConsole(),
     ),
     make(
+      "card.open",
+      "Open card studio",
+      "Navigate",
+      "Design a GitHub card and embed it",
+      ["github", "svg", "readme", "api"],
+      () => engine.openCard(),
+    ),
+    make(
+      "docs.open",
+      "Open docs",
+      "Navigate",
+      "How the console and the card studio work",
+      ["documentation", "help", "guide", "reference", "sdk", "manual"],
+      () => engine.openDocs(),
+    ),
+    make(
       "palette.open",
       "Open command palette",
       "Console",

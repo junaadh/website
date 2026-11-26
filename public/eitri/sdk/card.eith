@@ -1,0 +1,165 @@
+// card: draw an SVG card from someone's GitHub profile.
+//
+// Your script gets the user's data and draws with canvas-style calls; the
+// page turns them into an SVG. Coordinates and sizes are pixels from the top
+// left. Colours are "#rgb", "#rrggbb", "#rrggbbaa", "none", or "@name" for a
+// gradient made with card.gradient. The pen is stateful: set fill, stroke,
+// font and alignment, then draw. Everything is clamped to the card.
+
+pub struct Language {
+    pub name: string
+    pub color: string       // GitHub's colour for the language
+    pub share: f64          // 0-1 of the user's code
+}
+
+pub struct Repo {
+    pub name: string
+    pub description: string
+    pub language: string    // "" when unknown
+    pub stars: i64
+    pub forks: i64
+}
+
+pub struct User {
+    pub login: string
+    pub name: string        // falls back to the login
+    pub bio: string
+    pub location: string
+    pub followers: i64
+    pub following: i64
+    pub repos: i64          // public, owned, not forks
+    pub stars: i64          // across those repos
+    pub forks: i64
+    pub commits: i64        // this calendar year
+    pub pull_requests: i64
+    pub issues: i64
+    pub contributed_to: i64
+    pub joined: i64         // year the account was created
+    pub contributions: i64  // last 365 days
+    pub days: []i64         // daily contributions, oldest first, up to 371
+    pub languages: []Language   // top 8 by size
+    pub top: []Repo             // top 6 by stars
+}
+
+pub enum Weight {
+    Regular
+    Medium
+    Bold
+}
+
+pub enum Align {
+    Start
+    Middle
+    End
+}
+
+pub enum Icon {
+    Star
+    Fork
+    Repo
+    People
+    Commit
+    PullRequest
+    Issue
+    Location
+    Flame
+    Code
+    Calendar
+}
+
+pub enum Motion {
+    None
+    Fade
+    Rise
+    Pulse
+    Scan
+}
+
+// The data.
+pub let user: User
+pub fn param(name: string, fallback: string) -> string  // a URL query parameter, e.g. ?theme=dark
+
+// The canvas.
+pub fn size(width: i64, height: i64) -> void            // 100-1200 by 50-1200, default 495 by 195
+pub fn background(color: string, radius: i64) -> void
+pub fn border(color: string, width: i64) -> void
+pub fn gradient(name: string, from: string, to: string, angle: i64) -> void
+pub fn animate(kind: Motion) -> void                    // CSS motion inside the SVG
+
+// The pen.
+pub fn fill(color: string) -> void
+pub fn stroke(color: string, width: i64) -> void        // width 0 for no outline
+pub fn font(size: i64, weight: Weight, mono: bool) -> void
+pub fn align(anchor: Align) -> void
+pub fn opacity(percent: i64) -> void                    // 0-100
+
+// Shapes.
+pub fn rect(x: i64, y: i64, w: i64, h: i64, radius: i64) -> void
+pub fn circle(x: i64, y: i64, r: i64) -> void
+pub fn line(x1: i64, y1: i64, x2: i64, y2: i64) -> void
+pub fn text(x: i64, y: i64, content: string) -> void
+pub fn icon(kind: Icon, x: i64, y: i64, size: i64) -> void
+pub fn avatar(x: i64, y: i64, size: i64, round: bool) -> void
+
+// Charts from the user's data.
+pub fn languages(x: i64, y: i64, w: i64, h: i64) -> void        // stacked bar of user.languages
+pub fn heatmap(x: i64, y: i64, cell: i64, gap: i64, weeks: i64) -> void  // contribution grid in the fill colour
+pub fn sparkline(x: i64, y: i64, w: i64, h: i64, values: []i64) -> void  // in the stroke colour
+
+// Helpers, written in Eitri.
+
+// 1234 -> "1.2k", 12345 -> "12k", 3400000 -> "3.4M", 999 -> "999". Rounds down.
+pub fn compact(n: i64) -> string {
+    if n < 1000 {
+        return "${n}"
+    }
+    if n < 1000000 {
+        return scaled(n / 100, "k")
+    }
+    return scaled(n / 100000, "M")
+}
+
+// tenths of a unit: 12 -> "1.2", 10 -> "1", 123 -> "12".
+fn scaled(tenths: i64, unit: string) -> string {
+    if tenths >= 100 || tenths % 10 == 0 {
+        return "${tenths / 10}${unit}"
+    }
+    return "${tenths / 10}.${tenths % 10}${unit}"
+}
+
+// 0.734 -> "73%". Clamped to 0-100 and rounded to the nearest whole percent.
+pub fn percent(share: f64) -> string {
+    var p = i64(share * 100.0 + 0.5)
+    if p < 0 {
+        p = 0
+    }
+    if p > 100 {
+        p = 100
+    }
+    return "${p}%"
+}
+
+// At most `max` characters of `s`, ending in "..." when it was cut.
+pub fn clip(s: string, max: i64) -> string {
+    var out = ""
+    var n = 0
+    for c in s.chars() {
+        if n == max {
+            return out + "..."
+        }
+        out = out + "${c}"
+        n += 1
+    }
+    return out
+}
+
+// The largest value, or 0 for none.
+pub fn peak(values: []i64) -> i64 {
+    var best = 0
+    for v in values {
+        if v > best {
+            best = v
+        }
+    }
+    return best
+}

@@ -6,6 +6,8 @@ const LINKS = [
   { href: "/#work", label: "Work" },
   { href: "/#log", label: "Log" },
   { href: "/#contact", label: "Contact" },
+  { href: "/card", label: "Card" },
+  { href: "/docs", label: "Docs" },
 ];
 
 export function TopBar({ handle }: { handle: string }) {
@@ -13,7 +15,7 @@ export function TopBar({ handle }: { handle: string }) {
     <header className="@container sticky top-0 z-40 border-b border-line bg-void/70 backdrop-blur-md">
       <nav
         aria-label="Main"
-        className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-4 @3xl:gap-6 @3xl:px-5"
+        className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-2 px-3 @sm:px-4 @xl:gap-3 @3xl:gap-6 @3xl:px-5"
       >
         <Link href="/" className="group flex items-center gap-3">
           <span
@@ -29,7 +31,7 @@ export function TopBar({ handle }: { handle: string }) {
             <li key={l.href}>
               <Link
                 href={l.href}
-                className="label flex h-14 items-center px-2 transition-colors hover:text-signal @xl:px-3"
+                className="label flex h-14 items-center px-1 tracking-[0.1em] transition-colors hover:text-signal @sm:px-1.5 @xl:px-3 @xl:tracking-[0.16em]"
               >
                 {l.label}
               </Link>

@@ -31,6 +31,10 @@
   },
   "overrides": [
     {
+      "includes": ["components/card/CardStudio.tsx", "components/docs/CardPreview.tsx"],
+      "linter": { "rules": { "performance": { "noImgElement": "off" } } }
+    },
+    {
       "includes": ["app/globals.css"],
       "linter": {
         "rules": {

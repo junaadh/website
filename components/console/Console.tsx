@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   type KeyboardEvent as ReactKeyboardEvent,
   type PointerEvent as ReactPointerEvent,
@@ -13,20 +14,10 @@ import {
 import { EXAMPLES } from "@/lib/eitri/examples";
 import { encodeShare } from "@/lib/eitri/runtime";
 import { CodeView } from "./CodeView";
+import { Duration } from "./Duration";
 import { useEngine, useEngineState } from "./engine-context";
+import { ScriptEditor } from "./ScriptEditor";
 import { useDocked } from "./useDocked";
-import { Runs, useHighlight } from "./useHighlight";
-
-// Run time, with the unit kept lowercase inside uppercase labels ("µ" would
-// otherwise become the Greek capital "Μ").
-function Duration({ micros }: { micros: number }) {
-  const [value, unit] = micros < 1000 ? [String(micros), "µs"] : [(micros / 1000).toFixed(1), "ms"];
-  return (
-    <span className="tabular-nums">
-      {value} <span className="normal-case">{unit}</span>
-    </span>
-  );
-}
 
 type TabId = "output" | "tokens" | "ast" | "asm" | "docs";
 const TABS: { id: TabId; label: string }[] = [
@@ -66,8 +57,6 @@ const FALLBACK_SDK = [
 ];
 const moduleName = (file: string) => file.replace(/\.eith$/, "");
 
-const textMetrics = "px-3 py-3 font-mono text-xs leading-5 whitespace-pre";
-
 // Docked width: remembered per browser, kept between a usable console and a
 // usable page.
 const WIDTH_KEY = "eitri.console.width";
@@ -92,16 +81,12 @@ export function Console() {
   const id = useId();
   const dialog = useRef<HTMLDialogElement>(null);
   const editor = useRef<HTMLTextAreaElement>(null);
-  const gutter = useRef<HTMLDivElement>(null);
-  const layer = useRef<HTMLPreElement>(null);
-  const tabFocus = useRef(false); // Ctrl+M: let Tab leave the editor
   const [tab, setTab] = useState<TabId>("output");
   const [view, setView] = useState<{ tab: TabId; ok: boolean; text: string } | null>(null);
   const [sdk, setSdk] = useState<string[] | null>(null);
   const [moduleFile, setModuleFile] = useState("site.eith");
   const [docs, setDocs] = useState<Record<string, string>>({});
 
-  const runs = useHighlight(script);
   const docked = useDocked();
   const panel = useRef<HTMLElement>(null);
   const [width, setWidth] = useState(initialWidth);
@@ -194,23 +179,6 @@ export function Console() {
 
   const runNow = useCallback(() => void engine.run(script, { save: true }), [engine, script]);
 
-  const onEditorKey = (e: ReactKeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-      e.preventDefault();
-      runNow();
-    } else if (e.key.toLowerCase() === "m" && e.ctrlKey && !e.metaKey) {
-      e.preventDefault();
-      tabFocus.current = !tabFocus.current;
-      engine.toast(tabFocus.current ? "Tab moves focus (Ctrl+M to undo)" : "Tab inserts spaces");
-    } else if (e.key === "Tab" && !e.shiftKey && !tabFocus.current) {
-      e.preventDefault();
-      const ta = e.currentTarget;
-      const { selectionStart: s, selectionEnd: end } = ta;
-      setScript(`${script.slice(0, s)}    ${script.slice(end)}`);
-      requestAnimationFrame(() => ta.setSelectionRange(s + 4, s + 4));
-    }
-  };
-
   // Tokens / AST / Bytecode follow the editor (debounced) while their tab is open.
   useEffect(() => {
     if (tab === "output" || tab === "docs") return;
@@ -277,7 +245,6 @@ export function Console() {
     }
   };
 
-  const lines = script.split("\n").length;
   const outcome = last ? OUTCOME[last.outcome] : null;
   const groups = useMemo(() => [...new Set(EXAMPLES.map((x) => x.group))], []);
 
@@ -303,7 +270,14 @@ export function Console() {
             {bindingCount === 1 ? "key" : "keys"}
           </span>
         )}
-        <button type="button" onClick={closeConsole} className={`${btn} ml-auto`}>
+        <Link
+          href="/docs/console/"
+          className="label ml-auto transition-colors hover:text-signal"
+          title="Console documentation"
+        >
+          Docs ↗
+        </Link>
+        <button type="button" onClick={closeConsole} className={btn}>
           Close
         </button>
       </div>
@@ -327,7 +301,7 @@ export function Console() {
             const ex = EXAMPLES.find((x) => x.id === e.target.value);
             if (ex) setScript(ex.source);
           }}
-          className={`${btn} bg-void`}
+          className="control h-9"
         >
           <option value="">Examples…</option>
           {groups.map((g) => (
@@ -355,61 +329,15 @@ export function Console() {
             : "grid min-h-0 flex-1 grid-rows-2 gap-3 md:grid-cols-2 md:grid-rows-1"
         }
       >
-        {/* Editor: a transparent textarea over a highlighted copy of its text. */}
-        <div className="relative flex min-h-0 border border-line bg-void/60">
-          <div
-            ref={gutter}
-            aria-hidden="true"
-            className="overflow-hidden border-r border-line px-2 py-3 text-right font-mono text-xs leading-5 whitespace-pre text-ink-3 select-none"
-          >
-            {Array.from({ length: lines }, (_, i) => i + 1).join("\n")}
-            {"\n\n"}
-          </div>
-          <div className="relative min-w-0 flex-1">
-            {runs && (
-              <pre
-                ref={layer}
-                aria-hidden="true"
-                className={
-                  "pointer-events-none absolute inset-0 m-0 overflow-hidden text-ink " + textMetrics
-                }
-              >
-                <code>
-                  <Runs runs={runs} />
-                  {"\n"}
-                </code>
-              </pre>
-            )}
-            <textarea
-              ref={editor}
-              value={script}
-              onChange={(e) => setScript(e.target.value)}
-              onKeyDown={onEditorKey}
-              onScroll={(e) => {
-                const ta = e.currentTarget;
-                if (gutter.current) gutter.current.scrollTop = ta.scrollTop;
-                if (layer.current) {
-                  layer.current.scrollTop = ta.scrollTop;
-                  layer.current.scrollLeft = ta.scrollLeft;
-                }
-              }}
-              aria-label="Eitri script"
-              aria-describedby={`${id}-hint`}
-              spellCheck={false}
-              autoCapitalize="off"
-              autoCorrect="off"
-              wrap="off"
-              className={
-                "absolute inset-0 size-full resize-none overflow-auto bg-transparent focus-visible:outline-offset-[-3px] " +
-                textMetrics +
-                (runs ? " text-transparent caret-ink" : " text-ink")
-              }
-            />
-          </div>
-          <p id={`${id}-hint`} className="sr-only">
-            Tab inserts four spaces. Press Control M to make Tab move focus instead.
-          </p>
-        </div>
+        <ScriptEditor
+          value={script}
+          onChange={setScript}
+          onRun={runNow}
+          onTabMode={(on) =>
+            engine.toast(on ? "Tab moves focus (Ctrl+M to undo)" : "Tab inserts spaces")
+          }
+          textareaRef={editor}
+        />
 
         {/* Results */}
         <div className="flex min-h-0 flex-col border border-line bg-void/60">

@@ -12,8 +12,9 @@
     "start": "bunx serve out",
     "lint": "oxlint",
     "format": "biome format --write .",
-    "check": "biome check . && oxlint && tsc --noEmit",
-    "cv": "node scripts/build-cv.mjs"
+    "check": "biome check . && oxlint && tsc --noEmit && tsc --noEmit -p functions && node --experimental-strip-types --no-warnings scripts/check-docs.mjs",
+    "cv": "node scripts/build-cv.mjs",
+    "dev:api": "bun run build && wrangler pages dev out --kv CARDS --compatibility-date=2026-11-01 --port 8788"
   },
   "dependencies": {
     "next": "^16.4.6",
@@ -23,12 +24,14 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.6.9",
+    "@cloudflare/workers-types": "^5.20261125.1",
     "@tailwindcss/postcss": "^4.3.5",
     "@types/node": "^26.6.11",
     "@types/react": "^19.3.3",
     "@types/react-dom": "^19.3.0",
     "oxlint": "^1.95.0",
     "tailwindcss": "^4.3.5",
-    "typescript": "^7.0.2"
+    "typescript": "^7.0.2",
+    "wrangler": "^4.168.0"
   }
 }
