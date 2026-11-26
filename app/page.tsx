@@ -1,5 +1,6 @@
+import { HeroTitle } from "@/components/console/HeroTitle";
+import { WorkGrid } from "@/components/console/WorkGrid";
 import { ProjectCard } from "@/components/hud/ProjectCard";
-import { Scramble } from "@/components/hud/Scramble";
 import { SectionHeader } from "@/components/hud/SectionHeader";
 import { period, profile, projects } from "@/lib/profile";
 
@@ -29,7 +30,7 @@ export default function Home() {
           </p>
           <h1 id="hero" className="text-display font-semibold uppercase">
             <span className="glow bg-gradient-to-b from-ink to-ink-2 bg-clip-text text-transparent">
-              <Scramble text={person.name} />
+              <HeroTitle name={person.name} />
             </span>
             <span className="text-signal">.</span>
           </h1>
@@ -73,13 +74,9 @@ export default function Home() {
       {/* ── Work ── */}
       <section aria-labelledby="work-title" id="work" className="scroll-mt-24 pb-28">
         <SectionHeader index="01" title="Work" id="work-title" />
-        <ul className="grid gap-4 md:grid-cols-2">
-          {projects.map((p) => (
-            <li key={p.slug}>
-              <ProjectCard project={p} />
-            </li>
-          ))}
-        </ul>
+        <WorkGrid
+          items={projects.map((p) => ({ slug: p.slug, node: <ProjectCard project={p} /> }))}
+        />
       </section>
 
       {/* ── Log (experience) ── */}

@@ -1,4 +1,5 @@
 import raw from "@/content/profile.json";
+import type { ProjectData } from "@/lib/eitri/eitri";
 
 export type Status = "active" | "shipped" | "experiment" | "archived";
 export type YearMonth = `${number}-${number}`;
@@ -71,6 +72,17 @@ for (const p of profile.projects) {
 }
 
 export const projects = profile.projects;
+
+/** What the Eitri console sees of each project (no prose, no links). */
+export const projectData: ProjectData[] = projects.map((p) => ({
+  slug: p.slug,
+  name: p.name,
+  kind: p.kind,
+  year: p.year,
+  status: p.status,
+  featured: p.featured,
+  stack: p.stack,
+}));
 export const bySlug = (slug: string) => projects.find((p) => p.slug === slug);
 
 /** "P-01", "P-02"… in profile.json order. */

@@ -1,9 +1,15 @@
 @import "tailwindcss";
 
-/* --hue is the single accent knob (Eitri will turn it later). */
+/* Knobs the Eitri console turns (see components/console/SiteProvider.tsx). */
 :root {
   color-scheme: dark;
   --hue: 195;
+  --glow: 45; /* 0-100 */
+  --grid: 56px;
+  --grid-on: 1;
+}
+html[data-grid="off"] {
+  --grid-on: 0;
 }
 
 @theme inline {
@@ -23,6 +29,7 @@
   --color-ok: oklch(0.86 0.19 150);
   --color-warn: oklch(0.84 0.16 75);
   --color-off: oklch(0.6 0.02 250);
+  --color-err: oklch(0.72 0.17 25);
 
   --text-display: clamp(3.5rem, 13vw, 9rem);
   --text-display--line-height: 0.88;
@@ -77,10 +84,15 @@
   inset: 0;
   z-index: -1;
   pointer-events: none;
+  --grid-line: oklch(0.85 0.04 var(--hue) / calc(0.1 * var(--grid-on)));
   background:
-    radial-gradient(ellipse 70% 45% at 50% -5%, oklch(0.55 0.16 var(--hue) / 0.28), transparent 70%),
-    linear-gradient(var(--color-line) 1px, transparent 1px) 0 0 / 56px 56px,
-    linear-gradient(90deg, var(--color-line) 1px, transparent 1px) 0 0 / 56px 56px;
+    radial-gradient(
+      ellipse 70% 45% at 50% -5%,
+      oklch(0.55 0.16 var(--hue) / calc(0.28 * var(--glow) / 45)),
+      transparent 70%
+    ),
+    linear-gradient(var(--grid-line) 1px, transparent 1px) 0 0 / var(--grid) var(--grid),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px) 0 0 / var(--grid) var(--grid);
   mask-image: radial-gradient(ellipse 90% 70% at 50% 0%, black 30%, transparent 85%);
 
   &::after {
@@ -151,7 +163,7 @@
 }
 
 @utility glow {
-  text-shadow: 0 0 24px oklch(0.86 0.15 var(--hue) / 0.45);
+  text-shadow: 0 0 24px oklch(0.86 0.15 var(--hue) / calc(var(--glow) / 100));
 }
 
 /* Angled-corner button. */
@@ -164,6 +176,24 @@
     10px 100%,
     0 calc(100% - 10px)
   );
+}
+
+html[data-scanlines="off"] .backdrop::after {
+  display: none;
+}
+
+/* Whole page in the mono face (site.mono). */
+html[data-mono="on"] body {
+  font-family: var(--font-mono);
+}
+
+/* A project the script highlighted: lit frame around its card. */
+[data-lit="true"] > a {
+  --bracket: 22px;
+  border-color: var(--color-signal);
+  box-shadow:
+    0 0 0 1px oklch(0.86 0.15 var(--hue) / 0.35),
+    0 0 28px -6px oklch(0.86 0.15 var(--hue) / 0.5);
 }
 
 @media (prefers-reduced-motion: reduce) {

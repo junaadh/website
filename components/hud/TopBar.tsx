@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ConsoleButton } from "@/components/console/ConsoleButton";
 import { Clock } from "./Clock";
 
 const LINKS = [
@@ -35,12 +36,15 @@ export function TopBar({ handle }: { handle: string }) {
             </li>
           ))}
         </ul>
-        <div className="label hidden items-center gap-2 md:flex">
-          <span
-            aria-hidden="true"
-            className="size-1.5 animate-pulse-dot rounded-full bg-ok text-ok"
-          />
-          MLE <Clock /> UTC+5
+        <div className="flex items-center gap-5">
+          <div className="label hidden items-center gap-2 md:flex">
+            <span
+              aria-hidden="true"
+              className="size-1.5 animate-pulse-dot rounded-full bg-ok text-ok"
+            />
+            MLE <Clock /> UTC+5
+          </div>
+          <ConsoleButton />
         </div>
       </nav>
     </header>
