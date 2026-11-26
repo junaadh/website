@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Callout, DocHeader, H2, Pager } from "@/components/docs/Doc";
 import { sdkModules } from "@/lib/docs/sdk";
+import { pageMeta } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "SDK reference",
+export const metadata: Metadata = pageMeta({
+  title: "Docs: SDK reference",
   description:
     "Every module, function and type a script can use, generated from the declaration files.",
-};
+  path: "/docs/sdk/",
+});
 
 export default function SdkIndex() {
   const modules = sdkModules();

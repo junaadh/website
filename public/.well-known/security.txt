@@ -1,0 +1,4 @@
+Contact: mailto:junaadh.02@gmail.com
+Expires: 2027-11-26T00:00:00.000Z
+Preferred-Languages: en
+Canonical: https://junaadh.com/.well-known/security.txt

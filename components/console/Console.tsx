@@ -13,6 +13,7 @@ import {
 } from "react";
 import { EXAMPLES } from "@/lib/eitri/examples";
 import { encodeShare } from "@/lib/eitri/runtime";
+import { AnsiText } from "./AnsiText";
 import { CodeView } from "./CodeView";
 import { Duration } from "./Duration";
 import { useEngine, useEngineState } from "./engine-context";
@@ -75,6 +76,7 @@ export function Console() {
   const running = useEngineState((s) => s.running);
   const last = useEngineState((s) => s.last);
   const log = useEngineState((s) => s.log);
+  const sharedPending = useEngineState((s) => s.sharedPending);
   const actionCount = useEngineState((s) => s.actions.length);
   const bindingCount = useEngineState((s) => s.bindings.length);
   const { setScript, closeConsole } = engine;
@@ -282,6 +284,12 @@ export function Console() {
         </button>
       </div>
 
+      {sharedPending && (
+        <output className="label block border border-warn/60 bg-warn/10 px-3 py-2 normal-case text-warn">
+          Shared script. It has not run. Read it, then press Run to apply it to this page.
+        </output>
+      )}
+
       <div className="flex flex-wrap items-center gap-2">
         <button
           type="button"
@@ -378,13 +386,16 @@ export function Console() {
                       {outcome?.label} · <Duration micros={last.micros} />
                     </p>
                     {last.report && (
-                      <pre className="mb-3 whitespace-pre-wrap text-err">{last.report}</pre>
+                      <pre className="report mb-3 overflow-x-auto whitespace-pre text-ink-2">
+                        <AnsiText text={last.report} />
+                      </pre>
                     )}
                     {log.map((r) => (
                       <pre
                         key={r.id}
                         className={
                           "whitespace-pre-wrap " +
+                          (r.kind === "error" ? "report " : "") +
                           (r.kind === "error"
                             ? "text-err"
                             : r.kind === "toast"
@@ -395,7 +406,7 @@ export function Console() {
                         {r.kind === "toast" && (
                           <span className={TONE_CLASS[r.tone ?? "info"]}>toast </span>
                         )}
-                        {r.text}
+                        {r.kind === "error" ? <AnsiText text={r.text} /> : r.text}
                       </pre>
                     ))}
                     {last.outcome === "ok" && log.length === 0 && (
@@ -411,10 +422,11 @@ export function Console() {
               <pre
                 className={
                   "font-mono text-xs leading-5 whitespace-pre " +
+                  (view?.ok === false ? "report " : "") +
                   (view?.ok === false ? "text-err" : "text-ink-2")
                 }
               >
-                {view?.tab === tab ? view.text : "…"}
+                {view?.tab === tab ? <AnsiText text={view.text} /> : "…"}
               </pre>
             )}
             {tab === "docs" && (

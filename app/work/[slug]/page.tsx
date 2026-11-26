@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Scramble } from "@/components/hud/Scramble";
 import { StatusDot } from "@/components/hud/StatusDot";
 import { bySlug, code, projects } from "@/lib/profile";
+import { pageMeta } from "@/lib/seo";
 
 // Static export: every project page is generated at build time, others 404.
 export const dynamicParams = false;
@@ -13,7 +14,7 @@ type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const p = bySlug((await params).slug);
-  return p ? { title: p.name, description: p.summary } : {};
+  return p ? pageMeta({ title: p.name, description: p.summary, path: `/work/${p.slug}/` }) : {};
 }
 
 export default async function ProjectPage({ params }: Props) {

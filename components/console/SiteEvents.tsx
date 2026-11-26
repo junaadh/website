@@ -63,6 +63,24 @@ export function SiteEvents() {
     };
   }, [engine]);
 
+  // Safe reset: Escape pressed twice in quick succession, caught before
+  // anything can swallow it, clears the saved script and the running program.
+  useEffect(() => {
+    let lastEsc = 0;
+    const onEsc = (e: KeyboardEvent) => {
+      if (e.key !== "Escape" || e.repeat) return;
+      const now = performance.now();
+      if (now - lastEsc < 600 && engine.hasProgram) {
+        lastEsc = 0;
+        engine.reset();
+      } else {
+        lastEsc = now;
+      }
+    };
+    document.addEventListener("keydown", onEsc, true);
+    return () => document.removeEventListener("keydown", onEsc, true);
+  }, [engine]);
+
   // Keyboard: the two built-in shortcuts, then bindings, then "key" events.
   useEffect(() => {
     let konami = 0;

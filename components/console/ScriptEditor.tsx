@@ -1,6 +1,14 @@
 "use client";
 
-import { type KeyboardEvent, type Ref, useId, useRef } from "react";
+import {
+  type KeyboardEvent,
+  type Ref,
+  useCallback,
+  useId,
+  useImperativeHandle,
+  useLayoutEffect,
+  useRef,
+} from "react";
 import { Runs, useHighlight } from "./useHighlight";
 
 const textMetrics = "px-3 py-3 font-mono text-xs leading-5 whitespace-pre";
@@ -30,10 +38,26 @@ export function ScriptEditor({
 }) {
   const id = useId();
   const gutter = useRef<HTMLDivElement>(null);
-  const layer = useRef<HTMLPreElement>(null);
+  const layer = useRef<HTMLElement>(null);
+  const area = useRef<HTMLTextAreaElement | null>(null);
   const tabFocus = useRef(false); // Ctrl+M: let Tab leave the editor
   const runs = useHighlight(value);
   const lines = value.split("\n").length;
+
+  // The highlight layer and gutter follow the textarea by translation, not by
+  // scrollTop/scrollLeft: their own scroll range is clamped differently (the
+  // textarea loses room to its scrollbars), so copying scroll offsets drifts
+  // apart near the bottom or right edge.
+  const sync = useCallback(() => {
+    const ta = area.current;
+    if (!ta) return;
+    if (gutter.current) gutter.current.style.transform = `translateY(${-ta.scrollTop}px)`;
+    if (layer.current)
+      layer.current.style.transform = `translate(${-ta.scrollLeft}px, ${-ta.scrollTop}px)`;
+  }, []);
+  // Edits can scroll the textarea, and the layer mounts after the highlighter loads.
+  useLayoutEffect(sync);
+  useImperativeHandle(textareaRef, () => area.current as HTMLTextAreaElement, []);
 
   const onKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && (e.metaKey || e.ctrlKey) && onRun) {
@@ -55,39 +79,31 @@ export function ScriptEditor({
   return (
     <div className={`relative flex min-h-0 border border-line bg-void/60 ${className}`}>
       <div
-        ref={gutter}
         aria-hidden="true"
         className="overflow-hidden border-r border-line px-2 py-3 text-right font-mono text-xs leading-5 whitespace-pre text-ink-3 select-none"
       >
-        {Array.from({ length: lines }, (_, i) => i + 1).join("\n")}
-        {"\n\n"}
+        <div ref={gutter} className="will-change-transform">
+          {Array.from({ length: lines }, (_, i) => i + 1).join("\n")}
+        </div>
       </div>
       <div className="relative min-w-0 flex-1">
         {runs && (
           <pre
-            ref={layer}
             aria-hidden="true"
             className={`pointer-events-none absolute inset-0 m-0 overflow-hidden text-ink ${textMetrics}`}
           >
-            <code>
+            <code ref={layer} className="block w-max will-change-transform">
               <Runs runs={runs} />
               {"\n"}
             </code>
           </pre>
         )}
         <textarea
-          ref={textareaRef}
+          ref={area}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={onKeyDown}
-          onScroll={(e) => {
-            const ta = e.currentTarget;
-            if (gutter.current) gutter.current.scrollTop = ta.scrollTop;
-            if (layer.current) {
-              layer.current.scrollTop = ta.scrollTop;
-              layer.current.scrollLeft = ta.scrollLeft;
-            }
-          }}
+          onScroll={sync}
           aria-label={label}
           aria-describedby={`${id}-hint`}
           spellCheck={false}

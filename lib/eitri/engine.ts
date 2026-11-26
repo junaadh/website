@@ -12,6 +12,7 @@
 //    nested calls from clobbering each other's state.
 //  - every untrusted value is validated and clamped before it is used.
 
+import { stripAnsi } from "./ansi";
 import { builtinActions } from "./builtins";
 import type { Effect, Eitri, EventData, Payload, ProjectData, RunResult, Value } from "./eitri";
 import { DEFAULT_SCRIPT } from "./examples";
@@ -44,6 +45,7 @@ import {
   buildEnv,
   clearSaved,
   decodeShare,
+  dropEitri,
   getEitri,
   loadMuted,
   loadScript,
@@ -72,6 +74,8 @@ export interface EngineState {
   last: RunReport | null;
   log: LogLine[];
   script: string;
+  /** A script that arrived in a #eitri= link: loaded into the editor, not run. */
+  sharedPending: boolean;
 }
 
 export interface EngineHost {
@@ -97,6 +101,13 @@ export interface RunOptions {
 }
 
 const MAX_DEPTH = 3;
+/** A prompt or palette that no one asked for waits this long after the last one. */
+const PROMPT_COOLDOWN_MS = 5000;
+/** Look flips (invert, flicker) and flashes share this budget: at most 2 per second. */
+const STROBE_MAX = 2;
+const STROBE_WINDOW_MS = 1000;
+/** Query parameter that boots the page without the saved script. */
+const SAFE_PARAM = "safe";
 const TONES: Record<string, Tone> = { info: "info", ok: "ok", warn: "warn", error: "error" };
 
 const reducedMotion = () =>
@@ -135,6 +146,10 @@ export class Engine {
   private keyState: KeyState = { mode: null, pending: [] };
   private pendingTimer: ReturnType<typeof setTimeout> | null = null;
   private lastEmit = new Map<string, number>();
+  /** Who is driving the code that is running: the visitor (a key, the palette, Run) or a timer/event. */
+  private origin: "user" | "background" = "background";
+  private lastPromptAt = -Infinity;
+  private strobes: number[] = [];
 
   constructor(projects: ProjectData[]) {
     this.projects = projects;
@@ -157,6 +172,7 @@ export class Engine {
       last: null,
       log: [],
       script: DEFAULT_SCRIPT,
+      sharedPending: false,
     };
   }
 
@@ -209,7 +225,7 @@ export class Engine {
 
   // ── running ────────────────────────────────────────────────────────────
   async run(source: string, opts: RunOptions = {}): Promise<RunReport> {
-    this.set({ running: true });
+    this.set({ running: true, sharedPending: false });
     const visits = opts.visits ?? Math.max(readVisits(), 1);
     let res: RunResult;
     try {
@@ -218,6 +234,7 @@ export class Engine {
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       res = { outcome: "error", report: `could not run: ${msg}`, effects: [], micros: 0 };
+      this.dropInstance();
     }
     const report: RunReport = { outcome: res.outcome, report: res.report, micros: res.micros };
     // Output is decoded for every run, but only a clean run changes the page,
@@ -227,7 +244,9 @@ export class Engine {
       this.visits = visits;
       this.resetProgram();
       this.set({ log });
-      this.apply(res.effects, { silent: Boolean(opts.silent) });
+      this.as(opts.silent ? "background" : "user", () =>
+        this.apply(res.effects, { silent: Boolean(opts.silent) }),
+      );
       if (opts.save) {
         saveScript(source);
         if (readVisits() === 0) writeVisits(1);
@@ -248,23 +267,90 @@ export class Engine {
     } catch {
       // the program is already gone from our side
     }
-    this.set({ script: DEFAULT_SCRIPT, last: null, log: [] });
+    this.set({ script: DEFAULT_SCRIPT, last: null, log: [], sharedPending: false });
     if (location.hash.startsWith("#eitri=")) {
       history.replaceState(null, "", location.pathname + location.search);
     }
     this.toast("Page restored to defaults");
   };
 
+  /** Drop the wasm instance after a trap, with the registry that pointed into it. */
+  private dropInstance(): void {
+    dropEitri();
+    this.eitri = null;
+    for (const t of this.timers.values()) this.stopTimer(t);
+    this.timers.clear();
+    this.actions.clear();
+    this.handlers.clear();
+    this.bindings.clear();
+    this.modes.clear();
+    this.clearPending();
+    this.keyState = { mode: null, pending: [] };
+    this.set({ prompt: null });
+    this.publishRegistry();
+  }
+
+  /** True when something is running or saved that a panic reset would clear. */
+  get hasProgram(): boolean {
+    return (
+      this.state.prompt !== null ||
+      this.timers.size > 0 ||
+      this.actions.size > 0 ||
+      this.handlers.size > 0 ||
+      this.bindings.size > 0 ||
+      loadScript() !== null
+    );
+  }
+
+  /** Run fn with the given origin, restoring the previous one. */
+  private as<T>(origin: "user" | "background", fn: () => T): T {
+    const prev = this.origin;
+    this.origin = origin;
+    try {
+      return fn();
+    } finally {
+      this.origin = prev;
+    }
+  }
+
+  /** At most STROBE_MAX look flips or flashes per second, across all scripts. */
+  private allowStrobe(): boolean {
+    const now = performance.now();
+    this.strobes = this.strobes.filter((t) => now - t < STROBE_WINDOW_MS);
+    if (this.strobes.length >= STROBE_MAX) return false;
+    this.strobes.push(now);
+    return true;
+  }
+
+  /** A prompt or the palette that a script opens unasked is refused while one is open or cooling down. */
+  private allowPrompt(): boolean {
+    if (this.origin === "user") return true;
+    if (this.state.prompt || this.state.paletteOpen) return false;
+    return performance.now() - this.lastPromptAt >= PROMPT_COOLDOWN_MS;
+  }
+
   inspect = async (source: string, view: "tokens" | "ast" | "asm") =>
     (await getEitri(this.projects)).inspect(source, view);
 
-  /** Called once on mount: a shared #eitri= link wins over the saved script. */
+  /**
+   * Called once on mount. ?safe skips and clears the saved script. A shared
+   * #eitri= link is only loaded into the editor: it never runs until the
+   * visitor presses Run. A script the visitor saved themselves may replay.
+   */
   boot = (): void => {
     this.loadPreferences();
+    const params = new URLSearchParams(location.search);
+    if (params.has(SAFE_PARAM)) {
+      clearSaved();
+      params.delete(SAFE_PARAM);
+      const qs = params.toString();
+      history.replaceState(null, "", location.pathname + (qs ? `?${qs}` : "") + location.hash);
+      this.toast("Safe mode: saved script cleared, nothing was run", "warn");
+      return;
+    }
     const shared = decodeShare(location.hash);
     if (shared !== null) {
-      this.setScript(shared);
-      void this.run(shared, { save: false });
+      this.set({ script: shared, sharedPending: true, consoleOpen: true });
       return;
     }
     const saved = loadScript();
@@ -278,6 +364,8 @@ export class Engine {
 
   /** Drop everything a program owns and restore the default page. */
   private resetProgram(): void {
+    this.lastPromptAt = -Infinity;
+    this.strobes = [];
     for (const t of this.timers.values()) if (t.handle !== null) clearTimeout(t.handle);
     this.timers.clear();
     this.actions.clear();
@@ -360,6 +448,8 @@ export class Engine {
         effects: [],
         micros: 0,
       });
+      // A trap leaves the wasm in an unknown state: drop it and the program that lived in it.
+      this.dropInstance();
       return null;
     } finally {
       this.depth--;
@@ -367,7 +457,10 @@ export class Engine {
   }
 
   private fault(res: RunResult): void {
-    const first = res.report.split("\n").find((l) => l.trim() !== "") ?? res.outcome;
+    const first =
+      stripAnsi(res.report)
+        .split("\n")
+        .find((l) => l.trim() !== "") ?? res.outcome;
     this.set({
       log: [...this.state.log, this.logLine("error", res.report || first)].slice(-LIMITS.log),
     });
@@ -408,7 +501,9 @@ export class Engine {
 
   // ── actions ────────────────────────────────────────────────────────────
   /** Run an action by name: a built-in or one a script registered. */
-  invoke = (name: string): void => {
+  invoke = (name: string): void => this.as("user", () => this.invokeNow(name));
+
+  private invokeNow(name: string): void {
     const builtin = this.builtins.get(name);
     if (builtin) {
       builtin.run();
@@ -420,7 +515,7 @@ export class Engine {
       return;
     }
     this.callback(action.callback, { kind: "none" });
-  };
+  }
 
   // ── events ─────────────────────────────────────────────────────────────
   hasHandlers(name: string): boolean {
@@ -526,7 +621,10 @@ export class Engine {
     const prompt = this.state.prompt;
     if (!prompt) return;
     this.set({ prompt: null });
-    this.callback(prompt.callback, { kind: "text", value });
+    // A dismissed prompt that reopens itself must not loop: only a real answer is the visitor's doing.
+    this.as(value === null ? "background" : "user", () =>
+      this.callback(prompt.callback, { kind: "text", value }),
+    );
     this.release(prompt.callback);
   };
 
@@ -666,7 +764,7 @@ export class Engine {
           break;
         }
         case "site.invoke":
-          if (typeof a === "string") after.push(() => this.invoke(a));
+          if (typeof a === "string") after.push(() => this.invokeNow(a));
           break;
         case "site.title": {
           const t = text(a, LIMITS.title);
@@ -744,10 +842,14 @@ export class Engine {
           if (typeof a === "boolean") look.crt = a;
           break;
         case "theme.flicker":
-          if (typeof a === "boolean") look.flicker = a;
+          // Flicker is an animation: ignored under prefers-reduced-motion.
+          if (typeof a === "boolean" && !reducedMotion()) look.flicker = a;
           break;
         case "theme.invert":
-          if (typeof a === "boolean") look.invert = a;
+          // Invert is allowed under prefers-reduced-motion only when the visitor asked for it.
+          if (typeof a === "boolean" && (!reducedMotion() || this.origin === "user")) {
+            look.invert = a;
+          }
           break;
         case "theme.cursor":
           if ((CURSORS as readonly unknown[]).includes(a)) look.cursor = a as Look["cursor"];
@@ -770,7 +872,7 @@ export class Engine {
           break;
         }
         case "fx.flash":
-          fx({ kind: "flash" });
+          if (!silent && !reducedMotion() && this.allowStrobe()) fx({ kind: "flash" });
           break;
         case "fx.sparks":
           if (a === "" || known(a)) fx({ kind: "sparks", slug: a });
@@ -800,10 +902,11 @@ export class Engine {
         case "ui.pick":
         case "ui.input": {
           const spec = obj(a);
-          if (!spec || cb === undefined || silent) {
+          if (!spec || cb === undefined || silent || !this.allowPrompt()) {
             dropCallback(cb);
             break;
           }
+          this.lastPromptAt = performance.now();
           const kind = fn === "ui.pick" ? "pick" : "input";
           const items: PickItem[] = [];
           if (kind === "pick" && Array.isArray(spec.items)) {
@@ -833,13 +936,27 @@ export class Engine {
           break;
         }
         case "ui.palette":
-          oneShot(() => this.openPalette());
+          if (this.allowPrompt()) {
+            this.lastPromptAt = performance.now();
+            oneShot(() => this.openPalette());
+          }
           break;
 
         // ── keys ──
         case "keys.bind": {
           const parsed = typeof a === "string" ? parseBinding(a) : null;
           const action = text(b, LIMITS.actionName + 8);
+          if (!parsed && typeof a === "string" && parseBinding(a, true) !== null) {
+            this.set({
+              log: [
+                ...this.state.log,
+                this.logLine(
+                  "error",
+                  `keys.bind: "${text(a, 40)}" is reserved and cannot be bound`,
+                ),
+              ].slice(-LIMITS.log),
+            });
+          }
           if (!parsed || action === "") break;
           if (!this.bindings.has(parsed.canon) && this.bindings.size >= LIMITS.bindings) break;
           this.bindings.set(parsed.canon, { ...parsed, action });
@@ -930,6 +1047,12 @@ export class Engine {
     // Commit: replace slices only when something changed, so a handler that
     // changes nothing does not re-render the page.
     const patch: Partial<EngineState> = {};
+    // Look flips share the global strobe budget; a flip over budget is dropped.
+    for (const k of ["invert", "flicker"] as const) {
+      if (look[k] !== this.state.look[k] && !(silent ? true : this.allowStrobe())) {
+        look[k] = this.state.look[k];
+      }
+    }
     if (!sameLook(look, this.state.look)) patch.look = look;
     if (JSON.stringify(content) !== JSON.stringify(this.state.content)) patch.content = content;
     if (scriptMuted !== this.state.scriptMuted) patch.scriptMuted = scriptMuted;

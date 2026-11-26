@@ -32,8 +32,22 @@ const KEY_ALIAS: Record<string, string> = {
 };
 const MODIFIER_KEYS = new Set(["control", "shift", "alt", "meta", "altgraph", "capslock", "os"]);
 
-/** Keys the page keeps for itself: they cannot be bound. */
-export const RESERVED_KEYS = new Set(["ctrl+k", "meta+k", "`"]);
+/**
+ * Keys the page keeps for itself: they cannot be bound. Every ctrl/alt/meta
+ * chord is reserved (browser and OS shortcuts, the palette), and so are the
+ * keys that operate controls and leave dialogs. Scripts may bind plain keys,
+ * shift+keys and sequences of those.
+ */
+export const RESERVED_NAMES = new Set(["enter", "space", "tab", "escape", "`"]);
+const FUNCTION_KEY = /^f([1-9]|1[0-2])$/;
+
+/** Is one canonical step ("ctrl+k", "f5", "tab") reserved? */
+export function isReservedStep(step: string): boolean {
+  const parts = splitPlus(step);
+  const key = parts[parts.length - 1] ?? "";
+  if (parts.some((p) => p === "ctrl" || p === "alt" || p === "meta")) return true;
+  return RESERVED_NAMES.has(key) || FUNCTION_KEY.test(key);
+}
 
 const MODE_NAME = /^[a-z][a-z0-9_]{0,15}$/;
 
@@ -72,7 +86,7 @@ function parseStep(raw: string): string | null {
   return [...MOD_ORDER.filter((m) => mods.has(m)), key].join("+");
 }
 
-export function parseBinding(input: string): Parsed | null {
+export function parseBinding(input: string, allowReserved = false): Parsed | null {
   if (typeof input !== "string" || input.length > 64) return null;
   let rest = input.trim();
   let mode: string | null = null;
@@ -92,7 +106,7 @@ export function parseBinding(input: string): Parsed | null {
     if (step === null) return null;
     steps.push(step);
   }
-  if (steps.length === 1 && steps[0] !== undefined && RESERVED_KEYS.has(steps[0])) return null;
+  if (!allowReserved && steps.some(isReservedStep)) return null;
   const canon = (mode ? `${mode}/` : "") + steps.join(">");
   return { mode, steps, canon };
 }

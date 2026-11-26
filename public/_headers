@@ -1,0 +1,28 @@
+# Cloudflare Pages response headers for the static site. They apply to files
+# served from out/, not to Pages Functions: the /api/card/* responses set their
+# own headers (see functions/api/card/[user].ts), so nothing here touches them.
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=(), interest-cohort=()
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'
+
+/_next/static/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# next/og writes the images without an extension; say what they are.
+/opengraph-image
+  Content-Type: image/png
+/twitter-image
+  Content-Type: image/png
+/*/opengraph-image
+  Content-Type: image/png
+/*/twitter-image
+  Content-Type: image/png
+
+/.well-known/security.txt
+  Content-Type: text/plain; charset=utf-8
+
+/humans.txt
+  Content-Type: text/plain; charset=utf-8

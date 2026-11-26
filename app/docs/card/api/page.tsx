@@ -4,12 +4,14 @@ import { CodeBlock } from "@/components/docs/CodeBlock";
 import { Callout, DocHeader, H2, H3, OnThisPage, Pager } from "@/components/docs/Doc";
 import { PRESETS } from "@/lib/card/presets";
 import { profile } from "@/lib/profile";
+import { pageMeta } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Card HTTP API",
+export const metadata: Metadata = pageMeta({
+  title: "Docs: Card HTTP API",
   description:
     "GET /api/card/<login>.svg and .json, POST /api/card/scripts, caching, headers and errors.",
-};
+  path: "/docs/card/api/",
+});
 
 const SITE = profile.links.website;
 
@@ -185,8 +187,18 @@ avatar                                            data: URL or ""`}
           the same id, and an id that exists is never overwritten.
         </li>
         <li>
-          The script is compiled once against a sample profile. A script that does not compile is
-          refused; one that compiles is stored even if it later faults for particular data.
+          The script is rendered once against a sample profile and must finish cleanly. A script
+          that does not compile, or that faults on that render, is refused with 422; one that passes
+          is stored even if it later faults for particular data.
+        </li>
+        <li>
+          The body is read with a hard cap of 16 KB whatever the <code>content-length</code> says.
+          The request must come from this site: its <code>Origin</code> header has to match, or the
+          answer is 403.
+        </li>
+        <li>
+          Scripts are kept for good, because short links live in READMEs. Rate limiting is done at
+          the edge, not by this endpoint.
         </li>
         <li>
           Scripts are stored in a Cloudflare KV namespace. Without one the endpoint answers 501.
@@ -210,7 +222,16 @@ avatar                                            data: URL or ""`}
           </tr>
           <tr>
             <td>400</td>
-            <td className="!whitespace-normal">The body is empty.</td>
+            <td className="!whitespace-normal">The body is empty or not valid UTF-8.</td>
+            <td>
+              <code>{'{ "error" }'}</code>
+            </td>
+          </tr>
+          <tr>
+            <td>403</td>
+            <td className="!whitespace-normal">
+              The <code>Origin</code> header is missing or is not this site.
+            </td>
             <td>
               <code>{'{ "error" }'}</code>
             </td>
@@ -233,7 +254,9 @@ avatar                                            data: URL or ""`}
           </tr>
           <tr>
             <td>422</td>
-            <td className="!whitespace-normal">The script does not compile.</td>
+            <td className="!whitespace-normal">
+              The script does not compile, or faults when rendered against the sample profile.
+            </td>
             <td>
               <code>{'{ "error", "report" }'}</code>, the report being the compiler&apos;s
               diagnostic
@@ -259,14 +282,18 @@ avatar                                            data: URL or ""`}
       <ul>
         <li>
           <strong>GitHub data: 1 hour.</strong> Profile data is cached per login (case-insensitive)
-          and refetched once it is an hour old.
+          and refetched once it is an hour old. A user GitHub does not know is remembered for 10
+          minutes, and a rate limit or upstream failure for 1 minute, so repeated bad requests do
+          not reach GitHub each time.
         </li>
         <li>
           <strong>SVG: 1 hour, then stale while it refreshes.</strong> The response says{" "}
           <code>public, max-age=3600, stale-while-revalidate=86400</code>. On the server a good card
           is kept for a day; after the first hour it is still served at once while a new one is
           drawn in the background. The cache key is the login and the query with its parameters
-          sorted, so the same card is one entry whatever order the parameters came in.
+          sorted, so the same card is one entry whatever order the parameters came in. A cached card
+          is found from the query alone, before any saved script is looked up or any <code>s</code>{" "}
+          is decoded.
         </li>
         <li>
           <strong>Errors are never cached.</strong> Every error response, including the image for a
@@ -308,7 +335,7 @@ avatar                                            data: URL or ""`}
               <code>x-content-type-options</code>
             </td>
             <td>
-              <code>nosniff</code> on every SVG
+              <code>nosniff</code> on every SVG and JSON response
             </td>
           </tr>
           <tr>
@@ -369,6 +396,13 @@ avatar                                            data: URL or ""`}
           <tr>
             <td>404</td>
             <td className="!whitespace-normal">GitHub has no such user.</td>
+          </tr>
+          <tr>
+            <td>414</td>
+            <td className="!whitespace-normal">
+              The query string is longer than 2,048 characters, not counting the <code>s</code>{" "}
+              value (which has its own limit of 6,144 characters).
+            </td>
           </tr>
           <tr>
             <td>500</td>

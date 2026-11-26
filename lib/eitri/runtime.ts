@@ -20,6 +20,11 @@ export function getEitri(projects: ProjectData[]): Promise<Eitri> {
   return loading;
 }
 
+/** Forget the instance after a wasm trap: the next getEitri() instantiates a fresh one. */
+export function dropEitri(): void {
+  loading = null;
+}
+
 const maldives = new Intl.DateTimeFormat("en-US", {
   timeZone: "Indian/Maldives",
   hour: "numeric",

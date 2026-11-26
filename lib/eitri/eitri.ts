@@ -50,6 +50,8 @@ export interface Eitri {
   /** Forget one callback (a timer that was cancelled, a prompt that was answered). */
   release(callback: number): void;
   inspect(source: string, view: "tokens" | "ast" | "asm"): { ok: boolean; text: string };
+  /** Bytes of wasm linear memory in use (it only grows). */
+  memoryBytes(): number;
 }
 
 interface Exports {
@@ -144,6 +146,8 @@ export interface CardRuntime {
   /** Fresh context per render: no callbacks, no state between renders. Same RunResult as run(). */
   render(source: string, user: CardUser, params: Record<string, string>): RunResult;
   inspect(source: string, view: "tokens" | "ast" | "asm"): { ok: boolean; text: string };
+  /** Bytes of wasm linear memory in use (it only grows). */
+  memoryBytes(): number;
 }
 
 /** Where the wasm comes from: a URL or path, its bytes, or a precompiled module
@@ -196,7 +200,10 @@ function bridge(x: {
   // Copy text into wasm memory, call f(ptr, len), release the buffer.
   const withText = <T>(text: string, f: (ptr: number, len: number) => T): T => {
     const data = encoder.encode(text);
-    const ptr = x.eitri_alloc(data.length);
+    // Unsigned: an address above 2 GiB would read back negative. Zero is the
+    // allocator saying no (too large, or out of memory).
+    const ptr = x.eitri_alloc(data.length) >>> 0;
+    if (ptr === 0) throw new Error("eitri: input too large or out of memory");
     try {
       new Uint8Array(x.memory.buffer, ptr, data.length).set(data);
       return f(ptr, data.length);
@@ -205,8 +212,13 @@ function bridge(x: {
     }
   };
   // Memory may have grown during the call, so views are made after it.
-  const readAt = (ptr: number, len: number): any =>
-    JSON.parse(decoder.decode(new Uint8Array(x.memory.buffer, ptr, len)));
+  // An empty output is not JSON: it is null here and callers decide.
+  const readAt = (ptr: number, len: number): any => {
+    ptr >>>= 0;
+    len >>>= 0;
+    if (len === 0) return null;
+    return JSON.parse(decoder.decode(new Uint8Array(x.memory.buffer, ptr, len)));
+  };
   return { withText, readAt };
 }
 
@@ -232,13 +244,16 @@ export async function loadEitri(wasm: WasmSource, projects: ProjectData[]): Prom
         ].join("\t") + "\n",
     )
     .join("");
-  const handle = withText(data, (ptr, len) => x.eitri_new(ptr, len));
+  const handle = withText(data, (ptr, len) => x.eitri_new(ptr, len)) >>> 0;
 
   const int = (n: number) => (Number.isFinite(n) ? Math.trunc(n) | 0 : 0);
   const num = (n: number) => (Number.isFinite(n) ? n : 0);
   const finish = (len: number, start: number): RunResult => {
+    len >>>= 0;
     const micros = Math.round((now() - start) * 1000);
     const out = readOutput(handle, len);
+    if (out === null)
+      return { outcome: "error", report: "eitri: empty result", effects: [], micros };
     return { outcome: out.outcome, report: out.report, effects: out.effects, micros };
   };
   // Event fields are joined by U+001F; U+0000 marks null.
@@ -299,10 +314,13 @@ export async function loadEitri(wasm: WasmSource, projects: ProjectData[]): Prom
       x.eitri_release(handle, callback >>> 0);
     },
     inspect(source, view) {
-      const len = withText(source, (ptr, n) => x.eitri_inspect(handle, ptr, n, VIEWS[view]));
-      const out = readOutput(handle, len);
+      if (!(view in VIEWS)) return { ok: false, text: "eitri: unknown view" };
+      const len = withText(source, (ptr, n) => x.eitri_inspect(handle, ptr, n, VIEWS[view])) >>> 0;
+      const out = len === 0 ? null : readOutput(handle, len);
+      if (out === null) return { ok: false, text: "eitri: no output" };
       return { ok: out.ok, text: out.text };
     },
+    memoryBytes: () => x.memory.buffer.byteLength,
   };
 }
 
@@ -363,7 +381,7 @@ function encodeParams(params: Record<string, string>): string {
 export async function loadCard(wasm: WasmSource): Promise<CardRuntime> {
   const x = await instantiate<CardExports>(wasm);
   const { withText, readAt } = bridge(x);
-  const handle = x.eitri_card_new();
+  const handle = x.eitri_card_new() >>> 0;
   const readOutput = (len: number): any => readAt(x.eitri_card_out_ptr(handle), len);
 
   return {
@@ -378,11 +396,17 @@ export async function loadCard(wasm: WasmSource): Promise<CardRuntime> {
       );
       const micros = Math.round((now() - start) * 1000);
       const out = readOutput(len);
+      if (out === null)
+        return { outcome: "error", report: "eitri: empty result", effects: [], micros };
       return { outcome: out.outcome, report: out.report, effects: out.effects, micros };
     },
+    memoryBytes: () => x.memory.buffer.byteLength,
     inspect(source, view) {
-      const len = withText(source, (ptr, n) => x.eitri_card_inspect(handle, ptr, n, VIEWS[view]));
-      const out = readOutput(len);
+      if (!(view in VIEWS)) return { ok: false, text: "eitri: unknown view" };
+      const len =
+        withText(source, (ptr, n) => x.eitri_card_inspect(handle, ptr, n, VIEWS[view])) >>> 0;
+      const out = len === 0 ? null : readOutput(len);
+      if (out === null) return { ok: false, text: "eitri: no output" };
       return { ok: out.ok, text: out.text };
     },
   };

@@ -22,6 +22,8 @@ export const DEFAULT_HEIGHT = 195;
 const MARGIN = 50; // how far outside the card a position may sit
 const MAX_ELEMENTS = 3000;
 const MAX_BYTES = 600_000;
+const MAX_GRADIENTS = 64;
+const GRADIENT_BYTES = 280;
 const MAX_TEXT = 300;
 const MAX_AVATARS = 2;
 const MAX_AVATAR_URL = 150_000;
@@ -205,6 +207,13 @@ export function renderCard(effects: Effect[], user: CardUser, options: RenderOpt
     bytes += svg.length;
     body.push(svg);
   };
+  // Clip paths and gradient definitions count toward the same byte budget.
+  const pushDef = (def: string): boolean => {
+    if (bytes + def.length > MAX_BYTES) return false;
+    bytes += def.length;
+    defs.push(def);
+    return true;
+  };
 
   for (const effect of effects) {
     const a = effect.args;
@@ -228,6 +237,11 @@ export function renderCard(effects: Effect[], user: CardUser, options: RenderOpt
         const from = solid(str(a[1]));
         const to = solid(str(a[2]));
         if (NAME.test(name) && from && to && from.value !== "none" && to.value !== "none") {
+          // A gradient definition is about 250 bytes; a redefinition replaces one already counted.
+          if (!gradients.has(name)) {
+            if (gradients.size >= MAX_GRADIENTS || bytes + GRADIENT_BYTES > MAX_BYTES) break;
+            bytes += GRADIENT_BYTES;
+          }
           gradients.set(name, {
             id: `g${gradientCount++}`,
             from,
@@ -323,7 +337,7 @@ export function renderCard(effects: Effect[], user: CardUser, options: RenderOpt
           break;
         }
         const id = `c${clipCount++}`;
-        defs.push(`<clipPath id="${id}">${shape}/></clipPath>`);
+        if (!pushDef(`<clipPath id="${id}">${shape}/></clipPath>`)) break;
         push(
           `<image href="${avatarUrl}" x="${x}" y="${y}" width="${size}" height="${size}" preserveAspectRatio="xMidYMid slice" clip-path="url(#${id})"${pen.opacity < 1 ? ` opacity="${fmt(pen.opacity)}"` : ""}/>`,
         );
@@ -341,9 +355,10 @@ export function renderCard(effects: Effect[], user: CardUser, options: RenderOpt
         );
         if (w < 2 || total <= 0) break;
         const id = `c${clipCount++}`;
-        defs.push(
+        const clipped = pushDef(
           `<clipPath id="${id}"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${fmt(Math.min(h / 2, w / 2))}"/></clipPath>`,
         );
+        if (!clipped) break;
         // Whole-pixel boundaries, each segment starting where the last ended.
         let cursor = x;
         let covered = 0;

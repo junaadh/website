@@ -1,6 +1,6 @@
 // site/keys: keyboard shortcuts, in the style of rex.bind.
 //
-// A key is modifiers and a key joined by "+" ("shift+g", "ctrl+k", "?").
+// A key is modifiers and a key joined by "+" ("shift+g", "?", "g>w").
 // A sequence is keys joined by ">" ("g>w"). A key in a mode is written
 // "mode/key" ("nav/j") and only works while that mode is active; Escape
 // leaves a mode. Bindings name an action: a script action or a built-in one.

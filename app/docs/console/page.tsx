@@ -6,12 +6,14 @@ import { Diagnostic, Sample } from "@/components/docs/Sample";
 import { inspectScript } from "@/lib/docs/render";
 import { EXAMPLES } from "@/lib/eitri/examples";
 import { LIMITS } from "@/lib/eitri/model";
+import { pageMeta } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Console",
+export const metadata: Metadata = pageMeta({
+  title: "Docs: Console",
   description:
-    "The Eitri console: opening it, the editor, the output tabs, examples, sharing, saved scripts and limits.",
-};
+    "The Eitri console: opening it, the editor, the output tabs, examples, sharing, saved scripts, safe mode and limits.",
+  path: "/docs/console/",
+});
 
 const TOUR = `import site from "site"
 let n = 2 + 3
@@ -49,6 +51,7 @@ export default async function ConsoleDocs() {
           { id: "examples", title: "Examples" },
           { id: "share", title: "Share links" },
           { id: "saving", title: "Saved scripts" },
+          { id: "safe", title: "Safe mode and reset" },
           { id: "runs", title: "What a run is" },
           { id: "limits", title: "Limits" },
         ]}
@@ -222,14 +225,15 @@ export default async function ConsoleDocs() {
       <p>
         <strong>Share</strong> copies the current page address with the script appended as{" "}
         <code>#eitri=&lt;base64url&gt;</code>: the script as UTF-8, base64url encoded, not
-        compressed. Whoever opens the link gets the script in their editor and it runs when the page
-        loads. It is not saved for them until they press Run.
+        compressed. Whoever opens the link gets the script in their editor with the console open and
+        a &quot;Shared script&quot; notice. It does <strong>not</strong> run until they press Run,
+        and it is not saved for them until then.
       </p>
       <p>
         The part after <code>#</code> is never sent to a server. A long script makes a long link.
-        Because the script runs as soon as the link is opened, treat links like any other code: they
-        run inside the same sandbox and limits as anything you type, and they can only do what the{" "}
-        <Link href="/docs/sdk/">SDK</Link> allows.
+        Because a script runs when you press Run, read it first and treat links like any other code:
+        they run inside the same sandbox and limits as anything you type, and they can only do what
+        the <Link href="/docs/sdk/">SDK</Link> allows.
       </p>
 
       <H2 id="saving" title="Saved scripts" />
@@ -254,9 +258,37 @@ export default async function ConsoleDocs() {
       </ul>
       <Sample id="example-welcome-back" />
       <p>
-        A <code>#eitri=</code> link in the address wins over the saved script and is not a silent
-        replay. Local storage can be unavailable (some private modes); the console then works but
-        nothing is remembered.
+        A <code>#eitri=</code> link in the address wins over the saved script: the saved script does
+        not replay, and the shared one only loads into the editor. Local storage can be unavailable
+        (some private modes); the console then works but nothing is remembered.
+      </p>
+
+      <H2 id="safe" title="Safe mode and reset" />
+      <p>
+        A saved script can misbehave: a prompt that keeps coming back, flashing, keys it should not
+        own. Three ways out:
+      </p>
+      <ul>
+        <li>
+          Open the site with <code>?safe</code> (for example <code>https://junaadh.com/?safe</code>
+          ). The saved script is cleared, nothing runs and the parameter is removed from the
+          address.
+        </li>
+        <li>
+          Press <kbd>Esc</kbd> twice in a row while a script is saved or running. It restores the
+          default page and clears the saved script, even while a prompt is open.
+        </li>
+        <li>
+          A prompt opened by a script has a <strong>Reset site</strong> button in its title bar.
+        </li>
+      </ul>
+      <p>
+        To keep a script from taking the page over, a prompt or the palette that a timer or event
+        opens (rather than a key, the palette or Run) is refused while one is already open and for 5
+        seconds after the last one. Flashes and look flips (<code>theme.invert</code>,{" "}
+        <code>theme.flicker</code>, <code>fx.flash</code>) are limited to 2 per second in total and
+        are ignored under <code>prefers-reduced-motion</code>. Every ctrl, alt and meta chord,
+        enter, space, tab, escape, f1 to f12 and the backtick are reserved and cannot be bound.
       </p>
 
       <H2 id="runs" title="What a run is" />

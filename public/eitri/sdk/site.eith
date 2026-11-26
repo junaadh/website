@@ -5,6 +5,19 @@
 // the page. Look changes made at the top level describe the whole
 // customisation: each run starts from the default page. Handlers, timers and
 // actions stay alive after the script's last line until the next run.
+//
+// Limits. A run or dispatch faults with a runtime error, never silently
+// truncated, when it passes any of these:
+//   - a string argument over 2048 bytes, an array argument over 256 elements
+//     (the page clamps text far lower: toasts to 160 characters, and so on)
+//   - more than 10,000 calls that change the page, or 512 KiB of them
+//   - 2,000,000 steps (loop turns and calls), 16 MB of script memory, at most
+//     256 live callbacks
+//   - more than 40,000 units of host calls: a call costs 1, reading
+//     site.projects costs 20 because it copies every project. Read it once.
+//   - native work counts as steps too: an array insert or remove moves one
+//     step per 16 elements, a string search or count one step per 32 bytes
+// Every dispatch starts with fresh allowances.
 
 pub enum Status {
     Active

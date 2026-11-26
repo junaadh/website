@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ConsoleButton } from "@/components/console/ConsoleButton";
 import { Clock } from "./Clock";
+import { Mark } from "./Mark";
 
 const LINKS = [
   { href: "/#work", label: "Work" },
@@ -18,12 +19,7 @@ export function TopBar({ handle }: { handle: string }) {
         className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-2 px-3 @sm:px-4 @xl:gap-3 @3xl:gap-6 @3xl:px-5"
       >
         <Link href="/" className="group flex items-center gap-3">
-          <span
-            aria-hidden="true"
-            className="grid size-7 place-items-center border border-line-strong font-mono text-xs text-signal transition-colors group-hover:bg-signal group-hover:text-void"
-          >
-            J
-          </span>
+          <Mark className="size-8 text-signal transition-[filter] group-hover:drop-shadow-[0_0_6px_currentColor]" />
           <span className="label hidden text-ink @3xl:inline">{handle}</span>
         </Link>
         <ul className="flex items-center">

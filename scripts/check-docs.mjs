@@ -62,7 +62,9 @@ for (const d of DIAGNOSTICS) {
     r.outcome === d.outcome,
     r.report,
   );
-  check(`diagnostic ${d.id}: the report changed`, r.report.trim() === d.report.trim(), r.report);
+  // The site's reports are coloured with ANSI codes; the docs show the plain text.
+  const plain = r.report.replace(new RegExp(String.fromCharCode(27) + "\\[[0-9;]*m", "g"), "");
+  check(`diagnostic ${d.id}: the report changed`, plain.trim() === d.report.trim(), plain);
 }
 
 for (const e of EXAMPLES) {

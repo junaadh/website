@@ -4,8 +4,10 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { AnsiText } from "@/components/console/AnsiText";
 import { CodeView } from "@/components/console/CodeView";
 import { useEngine } from "@/components/console/engine-context";
+import { stripAnsi } from "@/lib/eitri/ansi";
 
 const btn =
   "label shrink-0 border border-line-strong px-2.5 py-1 transition-colors hover:border-signal hover:text-signal";
@@ -34,6 +36,7 @@ export function CodeBlock({
   /** Offer "Open in card studio" with this link. */
   studioHref?: string;
 }) {
+  const colored = language === "text" && code.includes(String.fromCharCode(27));
   const engine = useEngine();
   const box = useRef<HTMLDivElement>(null);
   const [near, setNear] = useState(false);
@@ -57,7 +60,7 @@ export function CodeBlock({
 
   const copy = async () => {
     try {
-      await navigator.clipboard.writeText(code);
+      await navigator.clipboard.writeText(stripAnsi(code));
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch {
@@ -106,8 +109,10 @@ export function CodeBlock({
         {language === "eitri" && near ? (
           <CodeView text={code} />
         ) : (
-          <pre className={`${pre} ${tone === "err" ? "text-err" : ""}`}>
-            <code>{code}</code>
+          <pre
+            className={`${pre} ${tone === "err" && !colored ? "text-err" : colored ? "report text-ink-2" : ""}`}
+          >
+            <code>{colored ? <AnsiText text={code} /> : code}</code>
           </pre>
         )}
       </section>

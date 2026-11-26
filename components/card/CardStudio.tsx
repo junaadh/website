@@ -73,6 +73,8 @@ export function CardStudio() {
   const [shown, setShown] = useState<Shown | null>(null);
   const [packed, setPacked] = useState<{ script: string; value: string | null } | null>(null);
   const [ready, setReady] = useState(false);
+  // A link (?s=, ?u=, ?preset=) never overwrites what is saved: only the visitor's own edits persist.
+  const [edited, setEdited] = useState(false);
   const [runtimeError, setRuntimeError] = useState<string | null>(null);
 
   // Start from the URL (?u=&preset=&s=&<params>) or from what was saved.
@@ -106,10 +108,10 @@ export function CardStudio() {
   /* oxlint-enable react/set-state-in-effect */
 
   useEffect(() => {
-    if (!ready) return;
+    if (!ready || !edited) return;
     safe(() => localStorage.setItem(SCRIPT_KEY, script), undefined);
     safe(() => localStorage.setItem(LOGIN_KEY, login), undefined);
-  }, [ready, script, login]);
+  }, [ready, edited, script, login]);
 
   // The user's data: once per username (debounced), from the API.
   const name = login.trim();
@@ -266,7 +268,10 @@ export function CardStudio() {
             <input
               id={`${id}-user`}
               value={login}
-              onChange={(e) => setLogin(e.target.value)}
+              onChange={(e) => {
+                setEdited(true);
+                setLogin(e.target.value);
+              }}
               maxLength={39}
               spellCheck={false}
               autoComplete="off"
@@ -284,6 +289,7 @@ export function CardStudio() {
               onChange={(e) => {
                 const p = presetById(e.target.value);
                 if (!p) return;
+                setEdited(true);
                 setScript(p.source);
                 setPresetId(p.id);
               }}
@@ -304,6 +310,7 @@ export function CardStudio() {
           <ScriptEditor
             value={script}
             onChange={(text) => {
+              setEdited(true);
               setScript(text);
               setPresetId(presetById(presetId)?.source === text ? presetId : CUSTOM);
             }}
