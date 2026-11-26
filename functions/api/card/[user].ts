@@ -142,10 +142,18 @@ async function parseQuery(url: URL, env: Env): Promise<Request_ | string> {
 }
 
 /** The same card has the same key whatever order its parameters came in. */
-function svgKey(url: URL, login: string): Request {
+/**
+ * Rendered-card cache key. It is versioned and names the data mode, so adding
+ * or removing GITHUB_TOKEN (or a new deploy that bumps the version) never
+ * serves a card drawn from the other kind of data.
+ */
+function svgKey(url: URL, login: string, env: Env): Request {
   const sorted = [...url.searchParams].sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0));
   const query = new URLSearchParams(sorted).toString();
-  return new Request(`${url.origin}/api/card/${login.toLowerCase()}.svg?${query}`);
+  const mode = env.GITHUB_TOKEN
+    ? `token-${env.GITHUB_PRIVATE === "false" ? "public" : "all"}`
+    : "public";
+  return dataKey(`card-svg-v2-${mode}`, `${login.toLowerCase()}?${query}`);
 }
 
 async function draw(login: string, query: Request_, env: Env) {
@@ -175,7 +183,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env, params, w
       const { user, source } = await userData(login, env);
       return Response.json(user satisfies CardUser, {
         headers: {
-          "cache-control": `public, max-age=${HOUR}`,
+          "cache-control": `public, max-age=300`,
           "x-card-source": source,
           "x-content-type-options": "nosniff",
         },
@@ -184,7 +192,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env, params, w
 
     // The cache key comes from the raw, normalised query: a hit costs no KV read and no decoding.
     // Only cards that rendered cleanly are ever stored, so a hit is always a good card.
-    const key = svgKey(url, login);
+    const key = svgKey(url, login, env);
     const cached = await getResponse(key);
     const refresh = async () => {
       const query = await parseQuery(url, env);
