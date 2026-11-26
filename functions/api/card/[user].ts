@@ -175,7 +175,7 @@ export const onRequestGet: PagesFunction<Env> = async ({ request, env, params, w
       const { user, source } = await userData(login, env);
       return Response.json(user satisfies CardUser, {
         headers: {
-          "cache-control": `public, max-age=${HOUR}`,
+          "cache-control": `public, max-age=300`,
           "x-card-source": source,
           "x-content-type-options": "nosniff",
         },

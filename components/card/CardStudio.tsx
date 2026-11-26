@@ -122,8 +122,11 @@ export function CardStudio() {
     const timer = setTimeout(async () => {
       const done = (data: Data) => setFetched({ name, data });
       try {
+        // no-cache: always ask the server, which keeps its own hour-long data
+        // cache, so a stale copy in the browser never hides newer data.
         const res = await fetch(`/api/card/${encodeURIComponent(name)}.json`, {
           signal: ctrl.signal,
+          cache: "no-cache",
         });
         const body: unknown = await res.json().catch(() => null);
         if (res.ok && isCardUser(body)) {
