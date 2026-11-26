@@ -24,25 +24,35 @@ jobs:
       - run: bun run build
 
   # The Pages project has Git builds turned off, so production deploys come
-  # from here with Direct Upload. Set the CLOUDFLARE_API_TOKEN and
-  # CLOUDFLARE_ACCOUNT_ID secrets and the CLOUDFLARE_DEPLOY_ENABLED variable.
+  # from here with Direct Upload, using the CLOUDFLARE_API_TOKEN and
+  # CLOUDFLARE_ACCOUNT_ID secrets. Without the token the job skips the deploy.
   deploy:
     needs: check
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master' && vars.CLOUDFLARE_DEPLOY_ENABLED == 'true'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     environment:
       name: production
       url: https://junaadh.com
+    env:
+      # secrets can't appear in if: expressions; map presence to an env var.
+      HAS_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN != '' }}
     steps:
+      - if: env.HAS_TOKEN != 'true'
+        run: echo "::warning::CLOUDFLARE_API_TOKEN is not set; skipping the deploy"
       # wrangler compiles functions/ from the working tree, so deploy from a
       # full checkout rather than from an uploaded out/ alone.
-      - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
+      - if: env.HAS_TOKEN == 'true'
+        uses: actions/checkout@v4
+      - if: env.HAS_TOKEN == 'true'
+        uses: oven-sh/setup-bun@v2
         with:
           bun-version: 1.4.2
-      - run: bun install --frozen-lockfile
-      - run: bun run build
+      - if: env.HAS_TOKEN == 'true'
+        run: bun install --frozen-lockfile
+      - if: env.HAS_TOKEN == 'true'
+        run: bun run build
       - name: Deploy to Cloudflare Pages
+        if: env.HAS_TOKEN == 'true'
         run: bunx wrangler pages deploy out --project-name=website --branch=master --commit-hash=${{ github.sha }}
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
