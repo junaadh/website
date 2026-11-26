@@ -38,12 +38,12 @@ export default async function ProjectPage({ params }: Props) {
         ← All work
       </Link>
 
-      <header className="grid gap-12 pt-12 pb-20 lg:grid-cols-[1fr_20rem] lg:items-end">
+      <header className="grid gap-12 pt-12 pb-20 @5xl:grid-cols-[minmax(0,1fr)_20rem] @5xl:items-end">
         <div>
           <p className="label mb-6">
             <span className="text-signal">{code(p)}</span> {`// ${p.kind}`}
           </p>
-          <h1 className="glow text-6xl font-semibold tracking-tight uppercase sm:text-8xl">
+          <h1 className="glow text-6xl font-semibold tracking-tight uppercase @xl:text-8xl">
             <Scramble text={p.name} />
           </h1>
           <p className="mt-8 max-w-2xl text-lg leading-relaxed text-ink-2">{p.description}</p>
@@ -94,7 +94,7 @@ export default async function ProjectPage({ params }: Props) {
       )}
 
       {notes.length > 0 && (
-        <section className="grid gap-4 border-t border-line py-12 md:grid-cols-3">
+        <section className="grid gap-4 border-t border-line py-12 @3xl:grid-cols-3">
           {notes.map(([title, body]) => (
             <div key={title} className="hud p-6">
               <h2 className="label mb-3 text-signal">{title}</h2>
@@ -105,7 +105,7 @@ export default async function ProjectPage({ params }: Props) {
       )}
 
       {links.length > 0 && (
-        <section className="grid gap-4 border-t border-line py-12 sm:grid-cols-2 lg:grid-cols-3">
+        <section className="grid gap-4 border-t border-line py-12 @xl:grid-cols-2 @5xl:grid-cols-3">
           {links.map((l) => (
             <a
               key={l.href}

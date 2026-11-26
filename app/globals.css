@@ -31,7 +31,7 @@ html[data-grid="off"] {
   --color-off: oklch(0.6 0.02 250);
   --color-err: oklch(0.72 0.17 25);
 
-  --text-display: clamp(3.5rem, 13vw, 9rem);
+  --text-display: clamp(3.5rem, 13cqi, 9rem); /* cqi: sized to the page, not the window */
   --text-display--line-height: 0.88;
   --text-display--letter-spacing: -0.04em;
 
@@ -510,4 +510,18 @@ html[data-shake] :is(main, header, footer, .backdrop) {
   .banner-copy {
     display: none;
   }
+}
+
+/* Docked console (desktop): the page reflows into the space beside it. Page
+   layout uses container queries on <main>, so it adapts to that width rather
+   than the window's. */
+html[data-console="docked"] body {
+  padding-right: var(--console-w);
+}
+html[data-resizing] {
+  cursor: col-resize;
+  user-select: none;
+}
+html[data-console="docked"] .dock-aware {
+  right: calc(var(--console-w) + 1rem);
 }

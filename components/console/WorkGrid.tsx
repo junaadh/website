@@ -28,7 +28,7 @@ export function WorkGrid({ items }: { items: WorkItem[] }) {
   });
 
   return (
-    <ul className="grid gap-4 md:grid-cols-2">
+    <ul className="grid gap-4 @3xl:grid-cols-2">
       {shown.map((item) => {
         const lit = highlighted.includes(item.slug);
         const tags = badges[item.slug] ?? [];

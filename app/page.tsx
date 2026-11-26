@@ -25,7 +25,7 @@ export default function Home() {
       <section
         id="top"
         aria-labelledby="hero"
-        className="grid gap-12 pt-20 pb-28 sm:pt-28 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-end"
+        className="grid gap-12 pt-20 pb-28 sm:pt-28 @5xl:grid-cols-[minmax(0,1fr)_20rem] @5xl:items-end"
       >
         <div className="min-w-0">
           <p className="label mb-6 flex items-center gap-3">
@@ -101,7 +101,7 @@ export default function Home() {
       {/* ── Systems (skills) ── */}
       <section aria-labelledby="systems-title" id="systems" className="scroll-mt-24 pb-28">
         <SectionHeader index="03" title="Systems" id="systems-title" />
-        <div className="grid gap-px border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-px border border-line bg-line @xl:grid-cols-2 @5xl:grid-cols-4">
           {skills.map((s) => (
             <div key={s.name} className="bg-void p-6">
               <h3 className="label mb-4 text-signal">{s.name}</h3>
@@ -120,11 +120,11 @@ export default function Home() {
       {/* ── Contact ── */}
       <section aria-labelledby="contact-title" id="contact" className="scroll-mt-24">
         <SectionHeader index="04" title="Uplink" id="contact-title" />
-        <div className="hud p-8 sm:p-12">
+        <div className="hud p-8 @xl:p-12">
           <p className="label mb-4">Open channel</p>
           <a
             href={`mailto:${links.email}`}
-            className="glow block break-all text-3xl font-semibold tracking-tight transition-colors hover:text-signal sm:text-5xl"
+            className="glow block break-all text-3xl font-semibold tracking-tight transition-colors hover:text-signal @xl:text-5xl"
           >
             {links.email}
           </a>

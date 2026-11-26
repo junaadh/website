@@ -34,7 +34,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           </a>
           <TopBar handle={profile.person.handle} />
           <Banner />
-          <main id="main" className="mx-auto max-w-6xl px-5">
+          <main id="main" className="@container mx-auto max-w-6xl px-5">
             {children}
           </main>
           <footer className="mx-auto mt-32 flex max-w-6xl flex-wrap justify-between gap-4 border-t border-line px-5 py-8">

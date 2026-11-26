@@ -69,7 +69,7 @@ export function ToastHost({ lifted }: { lifted: boolean }) {
     <div
       aria-live="polite"
       aria-atomic="false"
-      className={`pointer-events-none fixed right-4 z-[60] w-[min(22rem,calc(100vw-2rem))] ${
+      className={`dock-aware pointer-events-none fixed right-4 z-[60] w-[min(22rem,calc(100vw-2rem))] ${
         lifted ? "bottom-[calc(min(70dvh,34rem)+1.5rem)]" : "bottom-4"
       }`}
     >

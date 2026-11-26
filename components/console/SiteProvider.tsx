@@ -14,11 +14,14 @@ import { ModeChip } from "./ModeChip";
 import { ScreenOverlays } from "./ScreenOverlays";
 import { SiteEvents } from "./SiteEvents";
 import { ToastHost } from "./Toasts";
+import { useDocked } from "./useDocked";
 import { WeatherLayer } from "./WeatherLayer";
 
 // The editor and the palette are only fetched when first opened.
 const Console = dynamic(() => import("./Console").then((m) => m.Console), { ssr: false });
 const Palette = dynamic(() => import("./Palette").then((m) => m.Palette), { ssr: false });
+
+const OPEN_KEY = "eitri.console.open";
 
 // Look -> DOM. Defaults remove the override so globals.css stays the source of truth.
 function applyToDom(look: Look) {
@@ -52,6 +55,20 @@ function Runtime() {
   const consoleOpen = useEngineState((s) => s.consoleOpen);
   const paletteOpen = useEngineState((s) => s.paletteOpen);
   const prompt = useEngineState((s) => s.prompt);
+  const docked = useDocked();
+
+  // On desktop the console is part of the layout, so it stays open across
+  // visits once someone has opened it.
+  const restored = useRef(false);
+  useEffect(() => {
+    if (!docked) return;
+    if (!restored.current) {
+      restored.current = true;
+      if (localStorage.getItem(OPEN_KEY) === "1") engine.openConsole();
+      return;
+    }
+    localStorage.setItem(OPEN_KEY, consoleOpen ? "1" : "0");
+  }, [docked, consoleOpen, engine]);
 
   useEffect(() => applyToDom(look), [look]);
   useEffect(() => {
@@ -76,7 +93,7 @@ function Runtime() {
       <ModeChip />
       {consoleOpen && <Console />}
       {(paletteOpen || prompt) && <Palette />}
-      <ToastHost lifted={consoleOpen} />
+      <ToastHost lifted={consoleOpen && !docked} />
     </>
   );
 }

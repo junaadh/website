@@ -7,9 +7,9 @@ const noSubscribe = () => () => {};
 const isMac = () => /mac|iphone|ipad/i.test(navigator.platform || navigator.userAgent);
 
 const button =
-  "label flex h-8 items-center gap-2 border border-line-strong px-3 transition-colors hover:border-signal hover:text-signal";
+  "label flex h-8 items-center gap-2 border border-line-strong px-2.5 transition-colors hover:border-signal hover:text-signal @xl:px-3";
 const kbd =
-  "hidden min-w-9 border border-line px-1.5 py-0.5 text-center font-mono text-[0.625rem] text-ink-3 sm:inline-block";
+  "hidden min-w-9 border border-line px-1.5 py-0.5 text-center font-mono text-[0.625rem] text-ink-3 @5xl:inline-block";
 
 // The two entry points: the command palette (Cmd/Ctrl K) and the console (backtick).
 export function ConsoleButton() {
@@ -33,8 +33,8 @@ export function ConsoleButton() {
         aria-keyshortcuts="Control+K Meta+K"
         className={button}
       >
-        <span className="hidden md:inline">Commands</span>
-        <span className="md:hidden">Cmd</span>
+        <span className="hidden @3xl:inline">Commands</span>
+        <span className="@3xl:hidden">Cmd</span>
         <kbd className={kbd}>{hint}</kbd>
       </button>
       <button
@@ -45,7 +45,11 @@ export function ConsoleButton() {
         aria-keyshortcuts="`"
         className={button}
       >
-        Console
+        <span className="hidden @xl:inline">Console</span>
+        <span aria-hidden="true" className="font-mono @xl:hidden">
+          &gt;_
+        </span>
+        <span className="sr-only @xl:hidden">Console</span>
         <kbd className={kbd}>`</kbd>
       </button>
     </div>
