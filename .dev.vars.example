@@ -1,4 +1,4 @@
 # Copy to .dev.vars (git-ignored) for `bun run dev:api`. In production this is a Pages secret.
-# A fine-grained token with no permissions is enough: only public data is read.
-# Without it the API falls back to GitHub's anonymous REST API (no contributions).
+# A fine-grained token with Metadata: Read-only on all repositories. Without it the API uses
+# public GitHub endpoints only (contributed-to stays empty).
 GITHUB_TOKEN=
