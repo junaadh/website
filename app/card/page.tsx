@@ -8,6 +8,7 @@ export const metadata: Metadata = pageMeta({
   title: "Card studio",
   description: "Design a GitHub profile card with Eitri and embed it as an SVG.",
   path: "/card/",
+  image: "card",
 });
 
 export default function CardPage() {

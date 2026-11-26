@@ -11,6 +11,7 @@ export const metadata: Metadata = pageMeta({
   description:
     "GET /api/card/<login>.svg and .json, POST /api/card/scripts, caching, headers and errors.",
   path: "/docs/card/api/",
+  image: "docs",
 });
 
 const SITE = profile.links.website;
@@ -364,7 +365,7 @@ avatar                                            data: URL or ""`}
             </td>
             <td className="!whitespace-normal">
               Only with <code>rest</code>:{" "}
-              <em>no GITHUB_TOKEN: REST fallback, contributions and heatmap are empty</em>
+              <em>no GITHUB_TOKEN: public data only; contributed-to is empty</em>
             </td>
           </tr>
         </tbody>
@@ -430,19 +431,25 @@ avatar                                            data: URL or ""`}
         With a <code>GITHUB_TOKEN</code> secret on the server the data comes from GitHub&apos;s
         GraphQL API: only public data is requested, private repositories are never counted, and
         contributions come from the public calendar. Without one, the API falls back to
-        GitHub&apos;s anonymous REST API and the data has gaps. The response says which with{" "}
+        GitHub&apos;s public, unauthenticated endpoints (the REST and search APIs and the public
+        contributions page) and the data has small gaps. The response says which with{" "}
         <code>x-card-source</code>.
       </p>
       <ul>
         <li>
-          <code>commits</code>, <code>pullRequests</code>, <code>issues</code>,{" "}
-          <code>contributedTo</code> and <code>contributions</code> are <strong>0</strong>, and{" "}
-          <code>days</code> is <strong>empty</strong>, so a heatmap or sparkline draws nothing.
+          <code>contributedTo</code> is <strong>0</strong>: GitHub has no public source for it.
         </li>
         <li>
-          <code>languages</code> come from each repository&apos;s main language, weighted by the
-          repository&apos;s size, with built-in colours for common languages (grey for the rest),
-          instead of per-language byte counts.
+          <code>days</code> and <code>contributions</code> are read from the public contributions
+          page, <code>commits</code> (this calendar year), <code>pullRequests</code> and{" "}
+          <code>issues</code> from the search API. Each of these falls back to 0 (or an empty{" "}
+          <code>days</code>) if GitHub refuses; anonymous search allows about 10 requests a minute
+          per IP, and results are cached for an hour.
+        </li>
+        <li>
+          <code>languages</code> come from each repository&apos;s main language (each repository
+          counts once), with built-in colours for common languages (grey for the rest), instead of
+          per-language byte counts.
         </li>
         <li>
           Only the 100 most recently pushed repositories the user owns are looked at, minus forks.
@@ -452,8 +459,8 @@ avatar                                            data: URL or ""`}
       </ul>
       <Callout>
         <p>
-          The studio shows <em>Basic profile only</em> under the preview when the server is using
-          the fallback.
+          The studio shows <em>Public data only</em> under the preview when the server is using the
+          fallback.
         </p>
       </Callout>
 

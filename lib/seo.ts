@@ -1,7 +1,6 @@
 // Page metadata in one place, so every page names itself the same way: a title
 // (the root layout adds " · <name>"), a canonical URL, and matching Open Graph
-// and Twitter cards. The preview image comes from the opengraph-image and
-// twitter-image files of the nearest route segment.
+// and Twitter cards with a share image from /og/.
 
 import type { Metadata } from "next";
 import { profile } from "./profile";
@@ -21,12 +20,16 @@ export function pageMeta({
   title,
   description,
   path,
+  image,
 }: {
   title: string;
   description: string;
   path: string;
+  /** The share image, a file under /og/ (see app/og/[file]/route.tsx). */
+  image?: string;
 }): Metadata {
   const url = canonical(path);
+  const images = [ogImage(image ?? "home", fullTitle(title))];
   return {
     title,
     description,
@@ -38,7 +41,18 @@ export function pageMeta({
       locale: "en_US",
       title: fullTitle(title),
       description,
+      images,
     },
-    twitter: { card: "summary_large_image", title: fullTitle(title), description },
+    twitter: {
+      card: "summary_large_image",
+      title: fullTitle(title),
+      description,
+      images,
+    },
   };
+}
+
+/** A share image drawn by app/og/[file]/route.tsx, e.g. ogImage("work-eitri"). */
+export function ogImage(name: string, alt: string) {
+  return { url: `/og/${name}.png`, width: 1200, height: 630, type: "image/png", alt };
 }

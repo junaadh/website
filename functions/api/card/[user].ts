@@ -11,6 +11,7 @@
 // Errors are never cached. Script diagnostics come back as a 200 SVG so they
 // show up in a README; data errors keep their status (with an SVG body).
 
+import profile from "../../../content/profile.json";
 import { renderError } from "../../../lib/card/error";
 import { renderScript } from "../../../lib/card/pipeline";
 import { DEFAULT_PRESET, PRESETS, presetById } from "../../../lib/card/presets";
@@ -70,8 +71,15 @@ const entryTtl = (e: DataEntry) =>
  * and rate-limit or upstream failures for a minute, so a loop of bad requests
  * cannot hammer GitHub (or burn the token's rate limit).
  */
+/** The site owner's login, from the profile's GitHub link. */
+const OWNER = new URL(profile.links.github).pathname.split("/")[1]?.toLowerCase() ?? "";
+
+/** Private repos count only on the site owner's own card, and only unless GITHUB_PRIVATE=false. */
+const includePrivate = (login: string, env: Env) =>
+  login.toLowerCase() === OWNER && env.GITHUB_PRIVATE !== "false";
+
 async function userData(login: string, env: Env): Promise<Fetched> {
-  const key = dataKey("github-v2", login.toLowerCase());
+  const key = dataKey("github-v4", login.toLowerCase());
   const hit = await getJson<DataEntry>(key);
   if (hit && (hit.value.kind === "data" || hit.value.kind === "error")) {
     if (hit.age < entryTtl(hit.value) * 1000) {
@@ -80,7 +88,11 @@ async function userData(login: string, env: Env): Promise<Fetched> {
     }
   }
   try {
-    const fetched = await fetchCardUser(login, env.GITHUB_TOKEN || undefined);
+    const fetched = await fetchCardUser(
+      login,
+      env.GITHUB_TOKEN || undefined,
+      includePrivate(login, env),
+    );
     await putJson(key, { kind: "data", fetched } satisfies DataEntry, HOUR);
     return fetched;
   } catch (error) {
@@ -206,7 +218,7 @@ function okHeaders(source: string): Record<string, string> {
     "cache-control": `public, max-age=${HOUR}, stale-while-revalidate=${DAY}`,
     "x-card-source": source,
     ...(source === "rest"
-      ? { "x-card-note": "no GITHUB_TOKEN: REST fallback, contributions and heatmap are empty" }
+      ? { "x-card-note": "no GITHUB_TOKEN: public data only; contributed-to is empty" }
       : {}),
   };
 }

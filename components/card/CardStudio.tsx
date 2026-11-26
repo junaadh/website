@@ -351,8 +351,8 @@ export function CardStudio() {
           {data.kind === "sample" && <p className="mt-3 text-xs text-warn">{data.reason}</p>}
           {data.kind === "live" && data.source === "rest" && (
             <p className="mt-3 text-xs text-warn">
-              Basic profile only: the server has no GitHub token, so contributions and the heatmap
-              are empty.
+              Public data only: the server has no GitHub token, so contributed-to is empty and
+              commit, PR and issue counts may be missing if GitHub rate-limits.
             </p>
           )}
           {data.kind === "loading" && <p className="label mt-3">Loading profile…</p>}

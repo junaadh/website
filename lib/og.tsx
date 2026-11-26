@@ -1,6 +1,6 @@
 // biome-ignore-all lint/a11y/noSvgWithoutTitle: the SVGs are decoration inside an image that is rendered to a PNG
-// Open Graph images, drawn at build time with next/og. Every opengraph-image
-// route calls card(): the HUD look of the site (dark void, grid, a chamfered
+// Open Graph images, drawn at build time with next/og. app/og/[file]/route.tsx
+// calls card() for each one: the HUD look of the site (dark void, grid, a chamfered
 // frame with bracketed corners) in the default accent.
 
 import { readFile } from "node:fs/promises";

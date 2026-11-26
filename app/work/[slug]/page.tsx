@@ -14,7 +14,14 @@ type Props = { params: Promise<{ slug: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const p = bySlug((await params).slug);
-  return p ? pageMeta({ title: p.name, description: p.summary, path: `/work/${p.slug}/` }) : {};
+  return p
+    ? pageMeta({
+        title: p.name,
+        description: p.summary,
+        path: `/work/${p.slug}/`,
+        image: `work-${p.slug}`,
+      })
+    : {};
 }
 
 export default async function ProjectPage({ params }: Props) {
