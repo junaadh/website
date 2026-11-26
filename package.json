@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "postinstall": "node scripts/sync-assets.mjs",
-    "predev": "node scripts/sync-assets.mjs",
+    "predev": "node scripts/sync-assets.mjs && node scripts/build-cv.mjs",
     "dev": "next dev",
-    "prebuild": "node scripts/sync-assets.mjs",
+    "prebuild": "node scripts/sync-assets.mjs && node scripts/build-cv.mjs",
     "build": "next build",
     "start": "bunx serve out",
     "lint": "oxlint",
