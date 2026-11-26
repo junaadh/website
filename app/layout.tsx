@@ -5,7 +5,7 @@ import { Banner } from "@/components/console/Banner";
 import { SiteProvider } from "@/components/console/SiteProvider";
 import { TopBar } from "@/components/hud/TopBar";
 import { profile, projectData } from "@/lib/profile";
-import { KEYWORDS, SITE_NAME } from "@/lib/seo";
+import { KEYWORDS, ogImage, SITE_NAME } from "@/lib/seo";
 import "./globals.css";
 
 const sans = Geist({ subsets: ["latin"], variable: "--font-geist" });
@@ -27,11 +27,13 @@ export const metadata: Metadata = {
     locale: "en_US",
     title: profile.meta.title,
     description: profile.meta.description,
+    images: [ogImage("home", profile.meta.title)],
   },
   twitter: {
     card: "summary_large_image",
     title: profile.meta.title,
     description: profile.meta.description,
+    images: [ogImage("home", profile.meta.title)],
   },
   robots: {
     index: true,

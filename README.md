@@ -38,6 +38,6 @@ bun run build    # static site in out/
   `/api/card/*` responses, set their own headers). Rate limiting for `POST /api/card/scripts` belongs
   in an edge rule, and saved short-link scripts are deliberately kept forever.
 - **Metadata:** `lib/seo.ts` builds each page's title, canonical and Open Graph/Twitter cards. Preview
-  images are `opengraph-image.tsx` files drawn at build time by `lib/og.tsx`; `robots.ts`,
+  images are plain `/og/*.png` files drawn at build time by `app/og/[file]/route.tsx` with `lib/og.tsx`; `robots.ts`,
   `sitemap.ts` and `manifest.ts` are static routes, and `public/.well-known/security.txt` (expires
   2027-11-26) needs renewing before then.

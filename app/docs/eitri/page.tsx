@@ -8,7 +8,7 @@ export const metadata: Metadata = pageMeta({
   title: "Docs: Eitri language",
   description: "A short tour of Eitri for JavaScript and TypeScript developers.",
   path: "/docs/eitri/",
-  image: "/docs/opengraph-image",
+  image: "docs",
 });
 
 export default function EitriDocs() {

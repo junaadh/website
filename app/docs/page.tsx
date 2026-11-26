@@ -8,6 +8,7 @@ export const metadata: Metadata = pageMeta({
   title: "Docs: Overview",
   description: "What this site is, the three ways to use it, and where your scripts live.",
   path: "/docs/",
+  image: "docs",
 });
 
 const entries = [

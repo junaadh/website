@@ -13,7 +13,7 @@ export const metadata: Metadata = pageMeta({
   description:
     "Design a GitHub profile card in Eitri: the studio, presets, the drawing model, charts, embedding and the security model.",
   path: "/docs/card/",
-  image: "/docs/opengraph-image",
+  image: "docs",
 });
 
 const SITE = profile.links.website;

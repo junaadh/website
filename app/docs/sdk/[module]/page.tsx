@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         title: `Docs: ${m.path} (SDK)`,
         description: m.info.summary,
         path: `/docs/sdk/${m.slug}/`,
-        image: "/docs/opengraph-image",
+        image: "docs",
       })
     : {};
 }
