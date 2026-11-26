@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { AnsiText } from "@/components/console/AnsiText";
 import { CodeView } from "@/components/console/CodeView";
 import { useEngine } from "@/components/console/engine-context";
-import { stripAnsi } from "@/lib/eitri/ansi";
+import { colorReport, stripAnsi } from "@/lib/eitri/ansi";
 
 const btn =
   "label shrink-0 border border-line-strong px-2.5 py-1 transition-colors hover:border-signal hover:text-signal";
@@ -36,7 +36,11 @@ export function CodeBlock({
   /** Offer "Open in card studio" with this link. */
   studioHref?: string;
 }) {
-  const colored = language === "text" && code.includes(String.fromCharCode(27));
+  const report =
+    language === "text" && tone === "err" && !code.includes(String.fromCharCode(27))
+      ? colorReport(code)
+      : code;
+  const colored = language === "text" && report.includes(String.fromCharCode(27));
   const engine = useEngine();
   const box = useRef<HTMLDivElement>(null);
   const [near, setNear] = useState(false);
@@ -110,9 +114,9 @@ export function CodeBlock({
           <CodeView text={code} />
         ) : (
           <pre
-            className={`${pre} ${tone === "err" && !colored ? "text-err" : colored ? "report text-ink-2" : ""}`}
+            className={`${pre} ${colored ? "report text-ink-2" : tone === "err" ? "report text-err" : ""}`}
           >
-            <code>{colored ? <AnsiText text={code} /> : code}</code>
+            <code>{colored ? <AnsiText text={report} /> : code}</code>
           </pre>
         )}
       </section>

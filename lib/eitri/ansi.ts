@@ -63,3 +63,27 @@ export const stripAnsi = (text: string) =>
   parseAnsi(text)
     .map((r) => r.text)
     .join("");
+
+/**
+ * Colours a plain (uncoloured) report the way the wasm colours a live one:
+ * the header by severity, the gutter and box lines in the border colour, and
+ * the carets under the code. Used for reports stored as plain text.
+ */
+export function colorReport(text: string): string {
+  const sgr = (code: string, s: string) => (s ? `${ESC}[${code}m${s}${ESC}[0m` : "");
+  return text
+    .split("\n")
+    .map((line) => {
+      const head = /^(error|warning|fault|bug)(\[[^\]]*\])?(:.*)$/.exec(line);
+      if (head) {
+        const tone = head[1] === "warning" ? "1;33" : head[1] === "fault" ? "1;35" : "1;31";
+        return sgr(tone, head[1] + (head[2] ?? "")) + sgr("1", head[3] ?? "");
+      }
+      // Gutter: optional line number, then box-drawing characters and spaces.
+      const gutter = /^(\s*\d*\s*[│╭╰├┌└─·=]+[ ─]*[│╭╰├┌└]?[─]*)(.*)$/.exec(line);
+      if (!gutter) return line;
+      const rest = (gutter[2] ?? "").replace(/(\^+|[─┬╯╮└┘]*\^)/g, (m) => sgr("1;31", m));
+      return sgr("1;34", gutter[1] ?? "") + rest;
+    })
+    .join("\n");
+}
