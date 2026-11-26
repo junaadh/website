@@ -3,9 +3,12 @@
 // With GITHUB_TOKEN (a Pages secret) it asks the GraphQL API for everything.
 // A fine-grained token with no extra scopes is enough: only public data is
 // requested (public repositories, the public contribution calendar), and
-// private repositories are never counted. Without a token it falls back to the
-// REST API, which has no contribution data, so those fields are 0 and `days`
-// is empty. Callers can tell the two apart by `source`.
+// private repositories are never counted. Without a token it falls back to
+// public, unauthenticated endpoints: the REST API for profile and repositories,
+// the search API for commit / PR / issue totals, and the public contributions
+// page for the calendar. Each of those extras fails soft (0 / empty) so one
+// rate limit never breaks the card; only `contributedTo` has no public source
+// and stays 0. Callers can tell the two paths apart by `source`.
 
 import type { CardUser } from "../../lib/card/types";
 
@@ -216,8 +219,91 @@ interface RestRepo {
   size: number;
 }
 
+const MONTHS_DAYS = 371;
+const PUBLIC_TIMEOUT = 6000;
+
+const attr = (tag: string, name: string) =>
+  new RegExp(`\\s${name}\\s*=\\s*(?:"([^"]*)"|'([^']*)')`)
+    .exec(tag)
+    ?.slice(1)
+    .find((v) => v !== undefined);
+
+/**
+ * The public contribution calendar (no token): day cells carry data-date and
+ * data-level, and a <tool-tip for="cell id"> beside each holds "N contributions
+ * on ...". Counts fall back to a level-based estimate if the tooltips are gone.
+ * Empty on any failure.
+ */
+export function parseCalendar(html: string): { days: number[]; total: number } {
+  const labels = new Map<string, number>();
+  for (const m of html.matchAll(/<tool-tip\b([^>]*)>([^<]*)<\/tool-tip>/g)) {
+    const id = attr(m[1] ?? "", "for");
+    const text = (m[2] ?? "").trim();
+    const count = /^No contributions/i.test(text)
+      ? 0
+      : /^([\d,]+)\s+contributions?\b/i.exec(text)?.[1];
+    if (id && count !== undefined)
+      labels.set(id, typeof count === "number" ? count : Number(count.replace(/,/g, "")));
+  }
+  const cells: { date: string; count: number }[] = [];
+  const LEVEL_ESTIMATE = [0, 2, 5, 9, 14];
+  for (const m of html.matchAll(/<td\b[^>]*>/g)) {
+    const tag = m[0];
+    const date = attr(tag, "data-date");
+    if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !/ContributionCalendar-day/.test(tag))
+      continue;
+    const id = attr(tag, "id") ?? "";
+    const level = Math.min(4, Math.max(0, Number(attr(tag, "data-level")) || 0));
+    cells.push({ date, count: labels.get(id) ?? LEVEL_ESTIMATE[level] ?? 0 });
+  }
+  cells.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+  const days = cells.slice(-MONTHS_DAYS).map((c) => c.count);
+  const header = /([\d,]+)\s+contributions\s+in\s+the\s+last\s+year/i.exec(html)?.[1];
+  const sum = days.reduce((a, b) => a + b, 0);
+  return { days, total: header && labels.size > 0 ? Number(header.replace(/,/g, "")) : sum };
+}
+
+async function publicCalendar(login: string): Promise<{ days: number[]; total: number }> {
+  try {
+    const res = await fetch(`https://github.com/users/${encodeURIComponent(login)}/contributions`, {
+      headers: { "user-agent": "junaadh.com-card", accept: "text/html" },
+      signal: AbortSignal.timeout(PUBLIC_TIMEOUT),
+    });
+    if (!res.ok) return { days: [], total: 0 };
+    return parseCalendar(await res.text());
+  } catch {
+    return { days: [], total: 0 };
+  }
+}
+
+/** total_count of a search query; 0 on a rate limit, validation error or network failure. */
+async function searchTotal(kind: "commits" | "issues", q: string): Promise<number> {
+  try {
+    const res = await fetch(`${API}/search/${kind}?q=${q}&per_page=1`, {
+      headers: headers(),
+      signal: AbortSignal.timeout(PUBLIC_TIMEOUT),
+    });
+    if (!res.ok) return 0;
+    const n = ((await res.json()) as { total_count?: number }).total_count;
+    return typeof n === "number" ? n : 0;
+  } catch {
+    return 0;
+  }
+}
+
 async function viaRest(login: string): Promise<CardUser> {
   const path = encodeURIComponent(login);
+  const year = new Date().getUTCFullYear();
+  const who = encodeURIComponent(login);
+  // The extras never reject, so they cannot fail the card.
+  const extras = Promise.all([
+    publicCalendar(login),
+    // user: keeps it to repos the login owns; without it every fork of a
+    // popular repo counts the same commits again.
+    searchTotal("commits", `author:${who}+user:${who}+author-date:>=${year}-01-01`),
+    searchTotal("issues", `author:${who}+type:pr`),
+    searchTotal("issues", `author:${who}+type:issue`),
+  ]);
   const [uRes, rRes] = await Promise.all([
     get(`${API}/users/${path}`),
     get(`${API}/users/${path}/repos?type=owner&per_page=100&sort=pushed`),
@@ -246,6 +332,7 @@ async function viaRest(login: string): Promise<CardUser> {
     else sizes.set(r.language, { color: COLORS[r.language] ?? FALLBACK_COLOR, size: 1 });
   }
   const top = [...repos].sort((a, b) => b.stargazers_count - a.stargazers_count).slice(0, 6);
+  const [calendar, commits, pullRequests, issues] = await extras;
   return {
     login: u.login,
     name: clean(u.name, 80) || u.login,
@@ -256,13 +343,13 @@ async function viaRest(login: string): Promise<CardUser> {
     repos: repos.length,
     stars,
     forks,
-    commits: 0,
-    pullRequests: 0,
-    issues: 0,
-    contributedTo: 0,
+    commits,
+    pullRequests,
+    issues,
+    contributedTo: 0, // no public source without a token
     joined: Number(u.created_at.slice(0, 4)) || 0,
-    contributions: 0,
-    days: [],
+    contributions: calendar.total,
+    days: calendar.days,
     languages: topLanguages(sizes),
     top: top.map((r) => ({
       name: r.name,

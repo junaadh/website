@@ -25,8 +25,8 @@ bun run build    # static site in out/
 - **Card API:** `functions/api/card/[user].ts` serves `/api/card/<login>.svg` and `.json` as a Pages
   Function. The shared renderer (`lib/card/`) turns the effects of an Eitri `card` script into an
   SVG, in the browser (`/card` studio) and in the Worker. Set `GITHUB_TOKEN` (a Pages secret; for
-  local use copy `.dev.vars.example` to `.dev.vars`) for full data; without it the REST fallback is
-  used. `bun run dev:api` builds the site and serves it with the functions on :8788.
+  local use copy `.dev.vars.example` to `.dev.vars`) for full data; without it public endpoints are used
+  (all but contributed-to). `bun run dev:api` builds the site and serves it with the functions on :8788.
 - **Docs:** `/docs` (`app/docs/`) covers the console, the Eitri language, the SDK and the card
   studio. The SDK reference is generated at build time from `public/eitri/sdk/**/*.eith` by
   `lib/docs/eith.ts` (descriptions the files lack live in `lib/docs/sdk-notes.ts`). Every code sample is

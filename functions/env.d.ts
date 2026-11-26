@@ -5,7 +5,7 @@ declare module "*.wasm" {
 }
 
 interface Env {
-  /** Pages secret. Without it the API falls back to GitHub's REST API with fewer fields. */
+  /** Pages secret. Without it the API falls back to public GitHub endpoints (no contributed-to). */
   GITHUB_TOKEN?: string;
   /** KV namespace for saved card scripts (short links). Optional. */
   CARDS?: KVNamespace;
