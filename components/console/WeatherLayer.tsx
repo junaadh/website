@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import type { Weather } from "@/lib/eitri/site-state";
+import type { Weather } from "@/lib/eitri/model";
 
 interface Painter {
   /** ms between frames; 0 = every animation frame */
@@ -134,12 +134,88 @@ function aurora(w: number, h: number): Painter {
   };
 }
 
+function snow(w: number, h: number): Painter {
+  const count = Math.round(Math.min(160, Math.max(50, w / 10)));
+  const make = (anywhere: boolean) => ({
+    x: Math.random() * w,
+    y: anywhere ? Math.random() * h : -10,
+    r: 0.8 + Math.random() * 2.2,
+    speed: 0.03 + Math.random() * 0.06, // px per ms
+    phase: Math.random() * Math.PI * 2,
+    alpha: 0.25 + Math.random() * 0.5,
+  });
+  const flakes = Array.from({ length: count }, () => make(true));
+  return {
+    interval: 0,
+    draw(ctx, dt, hue, animate) {
+      for (const f of flakes) {
+        if (animate) {
+          f.y += f.speed * dt * (0.6 + f.r / 3);
+          f.x += Math.sin(f.phase + f.y / 70) * 0.25;
+          if (f.y > h + 10) Object.assign(f, make(false));
+        }
+        ctx.fillStyle = accent(hue, f.alpha, 0.97, 0.03);
+        ctx.beginPath();
+        ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    },
+  };
+}
+
+const MATRIX_GLYPHS = "ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄ0123456789:.=*+-<>";
+
+// Columns of falling glyphs in the accent colour, faint enough to read over.
+function matrix(w: number, h: number): Painter {
+  const size = 16;
+  const cols = Math.ceil(w / size);
+  const rows = Math.ceil(h / size);
+  const streams = Array.from({ length: cols }, () => ({
+    head: Math.random() * rows * 1.5 - rows * 0.5,
+    speed: 0.006 + Math.random() * 0.016, // cells per ms
+    length: 8 + Math.floor(Math.random() * 14),
+  }));
+  let t = 0;
+  const glyph = (c: number, r: number) =>
+    MATRIX_GLYPHS[(c * 131 + r * 17 + Math.floor(t / 260) * (c % 3)) % MATRIX_GLYPHS.length];
+  return {
+    interval: 50,
+    draw(ctx, dt, hue, animate) {
+      if (animate) t += dt;
+      ctx.font = `${size - 2}px ui-monospace, monospace`;
+      ctx.textBaseline = "top";
+      streams.forEach((s, c) => {
+        if (animate) {
+          s.head += s.speed * dt;
+          if (s.head - s.length > rows) {
+            s.head = -Math.random() * 10;
+            s.speed = 0.006 + Math.random() * 0.016;
+          }
+        }
+        const head = Math.floor(s.head);
+        for (let i = 0; i < s.length; i++) {
+          const r = head - i;
+          if (r < 0 || r > rows) continue;
+          const fade = 1 - i / s.length;
+          ctx.fillStyle =
+            i === 0 ? accent(hue, 0.7, 0.97, 0.05) : accent(hue, fade * 0.32, 0.8, 0.16);
+          ctx.fillText(glyph(c, r) ?? "0", c * size, r * size);
+        }
+      });
+    },
+  };
+}
+
 function makePainter(kind: Weather, w: number, h: number): Painter | null {
   switch (kind) {
     case "Rain":
       return rain(w, h, false);
     case "Storm":
       return rain(w, h, true);
+    case "Snow":
+      return snow(w, h);
+    case "Matrix":
+      return matrix(w, h);
     case "Static":
       return grain(w, h);
     case "Aurora":
@@ -228,6 +304,7 @@ export function WeatherLayer({ kind, hue }: { kind: Weather; hue: number }) {
     <canvas
       ref={canvas}
       aria-hidden="true"
+      data-weather
       className="pointer-events-none fixed inset-0 z-[-1] size-full"
     />
   );

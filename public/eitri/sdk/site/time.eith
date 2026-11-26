@@ -1,0 +1,5 @@
+// site/time: timers. Callbacks run later with a fresh step budget.
+
+pub fn after(ms: i64, run: fn() -> void) -> i64     // once, after at least 100 ms
+pub fn every(ms: i64, run: fn() -> void) -> i64     // repeatedly, at least 250 ms apart
+pub fn cancel(id: i64) -> void

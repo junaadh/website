@@ -1,0 +1,39 @@
+// site/ui: talking to the visitor. Prompts use the command palette, like
+// rex.ui.input and rex.ui.pick, and answer through a callback: null means the
+// visitor dismissed it.
+
+pub enum Tone {
+    Info
+    Ok
+    Warn
+    Error
+}
+
+pub struct Item {
+    pub id: string
+    pub title: string
+    pub subtitle: string
+    pub detail: string
+}
+
+pub struct Pick {
+    pub title: string
+    pub placeholder: string
+    pub items: []Item
+}
+
+pub struct Input {
+    pub title: string
+    pub placeholder: string
+    pub value: string
+    pub confirm: string
+}
+
+pub fn toast(text: string, tone: Tone) -> void
+pub fn banner(text: string) -> void         // a ticker under the top bar, "" removes it
+// The answer callback is optional only because a host function cannot take a
+// plain function value with an optional parameter; a lambda converts
+// implicitly, and null means nobody needs the answer.
+pub fn pick(spec: Pick, done: ?fn(?string) -> void) -> void
+pub fn input(spec: Input, done: ?fn(?string) -> void) -> void
+pub fn palette() -> void                    // open the command palette

@@ -14,22 +14,41 @@ export interface ProjectData {
 export interface Env {
   hour: number;
   minute: number;
+  second: number;
   weekday: number;
   visits: number;
 }
-export type Value = string | number | boolean | string[];
+export type Value = null | boolean | number | string | Value[] | { [key: string]: Value };
 export interface Effect {
   fn: string;
   args: Value[];
+  callback?: number;
 }
 export interface RunResult {
-  outcome: "ok" | "compile" | "fault" | "error";
+  outcome: "ok" | "compile" | "fault" | "error" | "stale";
   report: string;
   effects: Effect[];
   micros: number;
 }
+export interface EventData {
+  name: string;
+  slug: string | null;
+  section: string | null;
+  key: string | null;
+  x: number;
+  y: number;
+}
+export type Payload =
+  | { kind: "none" }
+  | { kind: "event"; event: EventData }
+  | { kind: "text"; value: string | null };
 export interface Eitri {
+  /** Run a script in a fresh context, replacing the previous program and dropping all its callbacks. */
   run(source: string, env: Env): RunResult;
+  /** Call a retained callback with a fresh step budget; outcome "stale" if it no longer exists. */
+  dispatch(callback: number, payload: Payload, env: Env): RunResult;
+  /** Forget one callback (a timer that was cancelled, a prompt that was answered). */
+  release(callback: number): void;
   inspect(source: string, view: "tokens" | "ast" | "asm"): { ok: boolean; text: string };
 }
 
@@ -45,15 +64,34 @@ interface Exports {
     len: number,
     hour: number,
     minute: number,
+    second: number,
     weekday: number,
     visits: number,
   ): number;
+  eitri_dispatch(
+    handle: number,
+    callback: number,
+    kind: number,
+    ptr: number,
+    len: number,
+    x: number,
+    y: number,
+    hour: number,
+    minute: number,
+    second: number,
+    weekday: number,
+    visits: number,
+  ): number;
+  eitri_release(handle: number, callback: number): void;
   eitri_inspect(handle: number, ptr: number, len: number, view: number): number;
   eitri_out_ptr(handle: number): number;
 }
 
-// U+001F joins stack items on the wire, so it is stripped from field text.
-const UNIT_SEP = String.fromCharCode(0x1f);
+// Field separators on the wire. Control characters are spelled out with
+// fromCharCode, and stripped from text with replaceAll, not a regex.
+const US = String.fromCharCode(0x1f);
+const NUL = String.fromCharCode(0);
+const strip = (text: string, chars: string[]) => chars.reduce((t, c) => t.replaceAll(c, " "), text);
 
 const VIEWS = { tokens: 0, ast: 1, asm: 2 } as const;
 
@@ -96,7 +134,7 @@ export async function loadEitri(
 
   // One TAB-separated line per project; stack items joined by U+001F. The
   // separators are removed from field text so a line cannot be split.
-  const clean = (text: string) => text.replace(/[\t\r\n]/g, " ").replaceAll(UNIT_SEP, " ");
+  const clean = (text: string) => strip(text, ["\t", "\r", "\n", US]);
   const data = projects
     .map(
       (p) =>
@@ -113,9 +151,18 @@ export async function loadEitri(
     .join("");
   const handle = withText(data, (ptr, len) => x.eitri_new(ptr, len));
 
+  const int = (n: number) => (Number.isFinite(n) ? Math.trunc(n) | 0 : 0);
+  const num = (n: number) => (Number.isFinite(n) ? n : 0);
+  const finish = (len: number, start: number): RunResult => {
+    const micros = Math.round((now() - start) * 1000);
+    const out = readOutput(handle, len);
+    return { outcome: out.outcome, report: out.report, effects: out.effects, micros };
+  };
+  // Event fields are joined by U+001F; U+0000 marks null.
+  const field = (text: string | null) => (text === null ? "\0" : strip(text, [NUL, US]));
+
   return {
     run(source, env) {
-      const int = (n: number) => (Number.isFinite(n) ? Math.trunc(n) | 0 : 0);
       const start = now();
       const len = withText(source, (ptr, n) =>
         x.eitri_run(
@@ -124,13 +171,49 @@ export async function loadEitri(
           n,
           int(env.hour),
           int(env.minute),
+          int(env.second),
           int(env.weekday),
           int(env.visits),
         ),
       );
-      const micros = Math.round((now() - start) * 1000);
-      const out = readOutput(handle, len);
-      return { outcome: out.outcome, report: out.report, effects: out.effects, micros };
+      return finish(len, start);
+    },
+    dispatch(callback, payload, env) {
+      const start = now();
+      let kind = 0;
+      let text = "";
+      let px = 0;
+      let py = 0;
+      if (payload.kind === "event") {
+        const e = payload.event;
+        kind = 1;
+        text = [field(e.name), field(e.slug), field(e.section), field(e.key)].join("\x1f");
+        px = num(e.x);
+        py = num(e.y);
+      } else if (payload.kind === "text") {
+        kind = payload.value === null ? 2 : 3;
+        text = payload.value ?? "";
+      }
+      const len = withText(text, (ptr, n) =>
+        x.eitri_dispatch(
+          handle,
+          callback >>> 0,
+          kind,
+          ptr,
+          n,
+          px,
+          py,
+          int(env.hour),
+          int(env.minute),
+          int(env.second),
+          int(env.weekday),
+          int(env.visits),
+        ),
+      );
+      return finish(len, start);
+    },
+    release(callback) {
+      x.eitri_release(handle, callback >>> 0);
     },
     inspect(source, view) {
       const len = withText(source, (ptr, n) => x.eitri_inspect(handle, ptr, n, VIEWS[view]));

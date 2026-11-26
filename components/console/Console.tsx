@@ -5,12 +5,15 @@ import {
   useCallback,
   useEffect,
   useId,
+  useMemo,
   useRef,
   useState,
 } from "react";
 import { EXAMPLES } from "@/lib/eitri/examples";
 import { encodeShare } from "@/lib/eitri/runtime";
-import { useConsole } from "./SiteProvider";
+import { CodeView } from "./CodeView";
+import { useEngine, useEngineState } from "./engine-context";
+import { Runs, useHighlight } from "./useHighlight";
 
 // Run time, with the unit kept lowercase inside uppercase labels ("µ" would
 // otherwise become the Greek capital "Μ").
@@ -37,7 +40,10 @@ const OUTCOME: Record<string, { label: string; tone: string }> = {
   compile: { label: "Compile error", tone: "text-err" },
   fault: { label: "Runtime fault", tone: "text-err" },
   error: { label: "Host error", tone: "text-err" },
+  stale: { label: "Stale", tone: "text-err" },
 };
+
+const TONE_CLASS = { info: "text-signal", ok: "text-ok", warn: "text-warn", error: "text-err" };
 
 const FOCUSABLE =
   'a[href],button:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
@@ -45,24 +51,52 @@ const FOCUSABLE =
 const btn =
   "label border border-line-strong px-3 py-2 transition-colors hover:border-signal hover:text-signal disabled:opacity-50";
 
+// The SDK files the Docs tab offers (public/eitri/sdk/index.json is generated
+// by scripts/sync-assets.mjs; this is the fallback if it cannot be fetched).
+const FALLBACK_SDK = [
+  "site.eith",
+  "site/fx.eith",
+  "site/keys.eith",
+  "site/sound.eith",
+  "site/theme.eith",
+  "site/time.eith",
+  "site/ui.eith",
+];
+const moduleName = (file: string) => file.replace(/\.eith$/, "");
+
+const textMetrics = "px-3 py-3 font-mono text-xs leading-5 whitespace-pre";
+
 export function Console() {
-  const { script, setScript, run, running, last, reset, closeConsole, notify, inspect } =
-    useConsole();
+  const engine = useEngine();
+  const script = useEngineState((s) => s.script);
+  const running = useEngineState((s) => s.running);
+  const last = useEngineState((s) => s.last);
+  const log = useEngineState((s) => s.log);
+  const actionCount = useEngineState((s) => s.actions.length);
+  const bindingCount = useEngineState((s) => s.bindings.length);
+  const { setScript, closeConsole } = engine;
   const id = useId();
   const dialog = useRef<HTMLDialogElement>(null);
   const editor = useRef<HTMLTextAreaElement>(null);
   const gutter = useRef<HTMLDivElement>(null);
+  const layer = useRef<HTMLPreElement>(null);
   const tabFocus = useRef(false); // Ctrl+M: let Tab leave the editor
   const [tab, setTab] = useState<TabId>("output");
   const [view, setView] = useState<{ tab: TabId; ok: boolean; text: string } | null>(null);
-  const [docs, setDocs] = useState<string | null>(null);
+  const [sdk, setSdk] = useState<string[] | null>(null);
+  const [moduleFile, setModuleFile] = useState("site.eith");
+  const [docs, setDocs] = useState<Record<string, string>>({});
+
+  const runs = useHighlight(script);
 
   // Focus: into the editor on open, back to the trigger on close. Esc closes,
-  // Tab wraps inside the dialog.
+  // Tab wraps inside the dialog. A palette opened over the console owns the keys.
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
     editor.current?.focus();
     const onKey = (e: KeyboardEvent) => {
+      const s = engine.getState();
+      if (s.paletteOpen || s.prompt) return;
       if (e.key === "Escape") {
         e.preventDefault();
         closeConsole();
@@ -89,9 +123,9 @@ export function Console() {
       document.removeEventListener("keydown", onKey);
       previous?.focus?.();
     };
-  }, [closeConsole]);
+  }, [closeConsole, engine]);
 
-  const runNow = useCallback(() => void run(script, { save: true }), [run, script]);
+  const runNow = useCallback(() => void engine.run(script, { save: true }), [engine, script]);
 
   const onEditorKey = (e: ReactKeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
@@ -100,7 +134,7 @@ export function Console() {
     } else if (e.key.toLowerCase() === "m" && e.ctrlKey && !e.metaKey) {
       e.preventDefault();
       tabFocus.current = !tabFocus.current;
-      notify(tabFocus.current ? "Tab moves focus (Ctrl+M to undo)" : "Tab inserts spaces");
+      engine.toast(tabFocus.current ? "Tab moves focus (Ctrl+M to undo)" : "Tab inserts spaces");
     } else if (e.key === "Tab" && !e.shiftKey && !tabFocus.current) {
       e.preventDefault();
       const ta = e.currentTarget;
@@ -115,7 +149,8 @@ export function Console() {
     if (tab === "output" || tab === "docs") return;
     let live = true;
     const t = setTimeout(() => {
-      inspect(script, tab)
+      engine
+        .inspect(script, tab)
         .then((r) => live && setView({ tab, ...r }))
         .catch((err) => live && setView({ tab, ok: false, text: String(err) }));
     }, 200);
@@ -123,15 +158,29 @@ export function Console() {
       live = false;
       clearTimeout(t);
     };
-  }, [tab, script, inspect]);
+  }, [tab, script, engine]);
 
+  // Docs: the module list, then the chosen file.
   useEffect(() => {
-    if (tab !== "docs" || docs !== null) return;
-    fetch("/eitri/site.eith")
+    if (tab !== "docs" || sdk !== null) return;
+    fetch("/eitri/sdk/index.json")
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+      .then((list: unknown) =>
+        setSdk(
+          Array.isArray(list) && list.every((f) => typeof f === "string")
+            ? (list as string[])
+            : FALLBACK_SDK,
+        ),
+      )
+      .catch(() => setSdk(FALLBACK_SDK));
+  }, [tab, sdk]);
+  useEffect(() => {
+    if (tab !== "docs" || sdk === null || docs[moduleFile] !== undefined) return;
+    fetch(`/eitri/sdk/${moduleFile}`)
       .then((r) => (r.ok ? r.text() : Promise.reject(new Error(String(r.status)))))
-      .then(setDocs)
-      .catch(() => setDocs("// could not load site.eith"));
-  }, [tab, docs]);
+      .then((text) => setDocs((d) => ({ ...d, [moduleFile]: text })))
+      .catch(() => setDocs((d) => ({ ...d, [moduleFile]: `// could not load ${moduleFile}` })));
+  }, [tab, sdk, moduleFile, docs]);
 
   const onTabKey = (e: ReactKeyboardEvent<HTMLButtonElement>, i: number) => {
     const next =
@@ -152,21 +201,18 @@ export function Console() {
   };
 
   const share = async () => {
-    const url = `${location.origin}${location.pathname}#eitri=${encodeShare(script)}`;
+    const url = `${location.origin + location.pathname}#eitri=${encodeShare(script)}`;
     try {
       await navigator.clipboard.writeText(url);
-      notify("Share link copied");
+      engine.toast("Share link copied");
     } catch {
-      notify("Could not copy the link");
+      engine.toast("Could not copy the link", "warn");
     }
   };
 
   const lines = script.split("\n").length;
-  const rows = [
-    ...(last?.prints ?? []).map((text, n) => ({ key: `p${n}`, text, toast: false })),
-    ...(last?.toasts ?? []).map((text, n) => ({ key: `t${n}`, text, toast: true })),
-  ];
   const outcome = last ? OUTCOME[last.outcome] : null;
+  const groups = useMemo(() => [...new Set(EXAMPLES.map((x) => x.group))], []);
 
   return (
     <dialog
@@ -185,7 +231,15 @@ export function Console() {
             {last ? <Duration micros={last.micros} /> : "—"}
           </span>
           {outcome && <span className={`label ${outcome.tone}`}>{outcome.label}</span>}
-          <span className="label ml-auto hidden lg:inline">⌘/Ctrl+Enter run · Esc close</span>
+          {(actionCount > 0 || bindingCount > 0) && (
+            <span className="label hidden sm:inline">
+              {actionCount} {actionCount === 1 ? "action" : "actions"} · {bindingCount}{" "}
+              {bindingCount === 1 ? "key" : "keys"}
+            </span>
+          )}
+          <span className="label ml-auto hidden lg:inline">
+            ⌘/Ctrl+Enter run · Esc close · ⌘/Ctrl+K commands
+          </span>
           <button type="button" onClick={closeConsole} className={`${btn} ml-auto lg:ml-0`}>
             Close
           </button>
@@ -213,13 +267,17 @@ export function Console() {
             className={`${btn} bg-void`}
           >
             <option value="">Examples…</option>
-            {EXAMPLES.map((x) => (
-              <option key={x.id} value={x.id}>
-                {x.title}
-              </option>
+            {groups.map((g) => (
+              <optgroup key={g} label={g}>
+                {EXAMPLES.filter((x) => x.group === g).map((x) => (
+                  <option key={x.id} value={x.id}>
+                    {x.title}
+                  </option>
+                ))}
+              </optgroup>
             ))}
           </select>
-          <button type="button" onClick={reset} className={btn}>
+          <button type="button" onClick={engine.reset} className={btn}>
             Reset
           </button>
           <button type="button" onClick={share} className={btn}>
@@ -228,7 +286,7 @@ export function Console() {
         </div>
 
         <div className="grid min-h-0 flex-1 grid-rows-2 gap-3 md:grid-cols-2 md:grid-rows-1">
-          {/* Editor */}
+          {/* Editor: a transparent textarea over a highlighted copy of its text. */}
           <div className="relative flex min-h-0 border border-line bg-void/60">
             <div
               ref={gutter}
@@ -238,22 +296,48 @@ export function Console() {
               {Array.from({ length: lines }, (_, i) => i + 1).join("\n")}
               {"\n\n"}
             </div>
-            <textarea
-              ref={editor}
-              value={script}
-              onChange={(e) => setScript(e.target.value)}
-              onKeyDown={onEditorKey}
-              onScroll={(e) => {
-                if (gutter.current) gutter.current.scrollTop = e.currentTarget.scrollTop;
-              }}
-              aria-label="Eitri script"
-              aria-describedby={`${id}-hint`}
-              spellCheck={false}
-              autoCapitalize="off"
-              autoCorrect="off"
-              wrap="off"
-              className="min-w-0 flex-1 resize-none overflow-auto bg-transparent px-3 py-3 font-mono text-xs leading-5 whitespace-pre text-ink focus-visible:outline-offset-[-3px]"
-            />
+            <div className="relative min-w-0 flex-1">
+              {runs && (
+                <pre
+                  ref={layer}
+                  aria-hidden="true"
+                  className={
+                    "pointer-events-none absolute inset-0 m-0 overflow-hidden text-ink " +
+                    textMetrics
+                  }
+                >
+                  <code>
+                    <Runs runs={runs} />
+                    {"\n"}
+                  </code>
+                </pre>
+              )}
+              <textarea
+                ref={editor}
+                value={script}
+                onChange={(e) => setScript(e.target.value)}
+                onKeyDown={onEditorKey}
+                onScroll={(e) => {
+                  const ta = e.currentTarget;
+                  if (gutter.current) gutter.current.scrollTop = ta.scrollTop;
+                  if (layer.current) {
+                    layer.current.scrollTop = ta.scrollTop;
+                    layer.current.scrollLeft = ta.scrollLeft;
+                  }
+                }}
+                aria-label="Eitri script"
+                aria-describedby={`${id}-hint`}
+                spellCheck={false}
+                autoCapitalize="off"
+                autoCorrect="off"
+                wrap="off"
+                className={
+                  "absolute inset-0 size-full resize-none overflow-auto bg-transparent focus-visible:outline-offset-[-3px] " +
+                  textMetrics +
+                  (runs ? " text-transparent caret-ink" : " text-ink")
+                }
+              />
+            </div>
             <p id={`${id}-hint`} className="sr-only">
               Tab inserts four spaces. Press Control M to make Tab move focus instead.
             </p>
@@ -273,9 +357,10 @@ export function Console() {
                   tabIndex={tab === t.id ? 0 : -1}
                   onClick={() => setTab(t.id)}
                   onKeyDown={(e) => onTabKey(e, i)}
-                  className={`label px-3 py-2.5 transition-colors hover:text-signal ${
-                    tab === t.id ? "border-b border-signal text-signal" : ""
-                  }`}
+                  className={
+                    "label px-3 py-2.5 transition-colors hover:text-signal " +
+                    (tab === t.id ? "border-b border-signal text-signal" : "")
+                  }
                 >
                   {t.label}
                 </button>
@@ -299,16 +384,25 @@ export function Console() {
                       {last.report && (
                         <pre className="mb-3 whitespace-pre-wrap text-err">{last.report}</pre>
                       )}
-                      {rows.map((r) => (
+                      {log.map((r) => (
                         <pre
-                          key={r.key}
-                          className={`whitespace-pre-wrap ${r.toast ? "text-ink-2" : "text-ink"}`}
+                          key={r.id}
+                          className={
+                            "whitespace-pre-wrap " +
+                            (r.kind === "error"
+                              ? "text-err"
+                              : r.kind === "toast"
+                                ? "text-ink-2"
+                                : "text-ink")
+                          }
                         >
-                          {r.toast && <span className="text-signal">toast </span>}
+                          {r.kind === "toast" && (
+                            <span className={TONE_CLASS[r.tone ?? "info"]}>toast </span>
+                          )}
                           {r.text}
                         </pre>
                       ))}
-                      {last.outcome === "ok" && !last.prints.length && !last.toasts.length && (
+                      {last.outcome === "ok" && log.length === 0 && (
                         <p className="text-ink-3">Ran cleanly. Nothing printed.</p>
                       )}
                     </>
@@ -321,17 +415,46 @@ export function Console() {
               )}
               {(tab === "tokens" || tab === "ast" || tab === "asm") && (
                 <pre
-                  className={`font-mono text-xs leading-5 whitespace-pre ${
-                    view?.ok === false ? "text-err" : "text-ink-2"
-                  }`}
+                  className={
+                    "font-mono text-xs leading-5 whitespace-pre " +
+                    (view?.ok === false ? "text-err" : "text-ink-2")
+                  }
                 >
                   {view?.tab === tab ? view.text : "…"}
                 </pre>
               )}
               {tab === "docs" && (
-                <pre className="font-mono text-xs leading-5 whitespace-pre text-ink-2">
-                  {docs ?? "…"}
-                </pre>
+                <div>
+                  <fieldset className="m-0 mb-3 flex min-w-0 flex-wrap gap-1.5 border-0 p-0">
+                    <legend className="sr-only">SDK modules</legend>
+                    {(sdk ?? [moduleFile]).map((f) => (
+                      <button
+                        key={f}
+                        type="button"
+                        aria-pressed={f === moduleFile}
+                        onClick={() => setModuleFile(f)}
+                        className={
+                          "label border px-2 py-1 normal-case transition-colors hover:text-signal " +
+                          (f === moduleFile ? "border-signal text-signal" : "border-line")
+                        }
+                      >
+                        {moduleName(f)}
+                      </button>
+                    ))}
+                  </fieldset>
+                  <p className="label mb-2 normal-case">
+                    {"import "}
+                    {moduleName(moduleFile).split("/").pop()}
+                    {' from "'}
+                    {moduleName(moduleFile)}
+                    {'"'}
+                  </p>
+                  {docs[moduleFile] !== undefined ? (
+                    <CodeView text={docs[moduleFile] ?? ""} />
+                  ) : (
+                    <p className="text-ink-3">…</p>
+                  )}
+                </div>
               )}
             </div>
           </div>

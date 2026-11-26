@@ -1,0 +1,6 @@
+// site/sound: small synthesized sounds. Silent until the visitor has
+// interacted with the page, and when they prefer reduced motion.
+
+pub fn beep(hz: i64, ms: i64) -> void       // 40-4000 Hz, 10-1000 ms
+pub fn chord(notes: []i64, ms: i64) -> void // up to 6 notes, in Hz
+pub fn mute(on: bool) -> void

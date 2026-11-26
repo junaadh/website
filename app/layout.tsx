@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import type { ReactNode } from "react";
+import { Banner } from "@/components/console/Banner";
 import { SiteProvider } from "@/components/console/SiteProvider";
 import { TopBar } from "@/components/hud/TopBar";
 import { profile, projectData } from "@/lib/profile";
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             Skip to content
           </a>
           <TopBar handle={profile.person.handle} />
+          <Banner />
           <main id="main" className="mx-auto max-w-6xl px-5">
             {children}
           </main>

@@ -1,4 +1,6 @@
 import { HeroTitle } from "@/components/console/HeroTitle";
+import { HeroTypeout } from "@/components/console/HeroTypeout";
+import { ReadoutPanel } from "@/components/console/ReadoutPanel";
 import { WorkGrid } from "@/components/console/WorkGrid";
 import { ProjectCard } from "@/components/hud/ProjectCard";
 import { SectionHeader } from "@/components/hud/SectionHeader";
@@ -8,7 +10,7 @@ export default function Home() {
   const { person, links, experience, skills } = profile;
   const current = experience.find((e) => e.end === null);
 
-  const readout = [
+  const readout: [string, string][] = [
     ["Operator", person.fullName],
     ["Role", person.title],
     ["Station", current?.company ?? "Independent"],
@@ -21,20 +23,22 @@ export default function Home() {
     <>
       {/* ── Hero ── */}
       <section
+        id="top"
         aria-labelledby="hero"
-        className="grid gap-12 pt-20 pb-28 sm:pt-28 lg:grid-cols-[1fr_20rem] lg:items-end"
+        className="grid gap-12 pt-20 pb-28 sm:pt-28 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-end"
       >
-        <div>
+        <div className="min-w-0">
           <p className="label mb-6 flex items-center gap-3">
             <span className="text-signal">[ ID ]</span> {person.fullName} — {person.title}
           </p>
-          <h1 id="hero" className="text-display font-semibold uppercase">
+          <h1 id="hero" className="text-display font-semibold uppercase [overflow-wrap:anywhere]">
             <span className="glow bg-gradient-to-b from-ink to-ink-2 bg-clip-text text-transparent">
               <HeroTitle name={person.name} />
             </span>
             <span className="text-signal">.</span>
           </h1>
           <p className="mt-8 max-w-xl text-lg leading-relaxed text-ink-2">{person.intro}</p>
+          <HeroTypeout />
           <div className="mt-10 flex flex-wrap gap-3">
             <a
               href="#work"
@@ -51,24 +55,7 @@ export default function Home() {
           </div>
         </div>
 
-        <dl className="hud p-5">
-          <p className="label mb-4 flex items-center justify-between border-b border-line pb-3">
-            <span className="text-signal">Sys.readout</span>
-            <span className="flex items-center gap-2">
-              <span
-                aria-hidden="true"
-                className="size-1.5 animate-pulse-dot rounded-full bg-ok text-ok"
-              />
-              Online
-            </span>
-          </p>
-          {readout.map(([k, v]) => (
-            <div key={k} className="flex justify-between gap-4 py-1.5">
-              <dt className="label">{k}</dt>
-              <dd className="text-right font-mono text-xs text-ink">{v}</dd>
-            </div>
-          ))}
-        </dl>
+        <ReadoutPanel rows={readout} />
       </section>
 
       {/* ── Work ── */}
@@ -112,7 +99,7 @@ export default function Home() {
       </section>
 
       {/* ── Systems (skills) ── */}
-      <section aria-labelledby="systems-title" className="pb-28">
+      <section aria-labelledby="systems-title" id="systems" className="scroll-mt-24 pb-28">
         <SectionHeader index="03" title="Systems" id="systems-title" />
         <div className="grid gap-px border border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
           {skills.map((s) => (

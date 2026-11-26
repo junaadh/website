@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useSiteState } from "./SiteProvider";
+import { useContent, useEngine } from "./engine-context";
 
 export interface WorkItem {
   slug: string;
@@ -10,7 +10,8 @@ export interface WorkItem {
 }
 
 export function WorkGrid({ items }: { items: WorkItem[] }) {
-  const { order, hidden, highlighted } = useSiteState();
+  const engine = useEngine();
+  const { order, hidden, highlighted, badges } = useContent();
 
   const rank = (slug: string) => {
     const i = order.indexOf(slug);
@@ -21,13 +22,43 @@ export function WorkGrid({ items }: { items: WorkItem[] }) {
     .sort((a, b) => rank(a.slug) - rank(b.slug))
     .filter((i) => !hidden.includes(i.slug));
 
+  const at = (e: { clientX: number; clientY: number }) => ({
+    x: e.clientX / Math.max(1, window.innerWidth),
+    y: e.clientY / Math.max(1, window.innerHeight),
+  });
+
   return (
     <ul className="grid gap-4 md:grid-cols-2">
       {shown.map((item) => {
         const lit = highlighted.includes(item.slug);
+        const tags = badges[item.slug] ?? [];
         return (
-          <li key={item.slug} data-lit={lit ? "true" : undefined}>
+          // Hover and click are events for scripts; they never stop navigation.
+          <li
+            key={item.slug}
+            data-project={item.slug}
+            data-lit={lit ? "true" : undefined}
+            className="relative"
+            onPointerEnter={(e) => engine.emit("project.hover", { slug: item.slug, ...at(e) })}
+            onPointerLeave={(e) => engine.emit("project.leave", { slug: item.slug, ...at(e) })}
+            onClickCapture={(e) => engine.emit("project.click", { slug: item.slug, ...at(e) })}
+          >
             {lit && <span className="sr-only">Highlighted project.</span>}
+            {tags.length > 0 && (
+              <ul
+                aria-label="Tags"
+                className="pointer-events-none absolute -top-2 left-6 z-10 flex gap-1.5"
+              >
+                {tags.map((t) => (
+                  <li
+                    key={t}
+                    className="label chamfer bg-signal px-2 py-0.5 text-[0.625rem] font-medium text-void"
+                  >
+                    {t}
+                  </li>
+                ))}
+              </ul>
+            )}
             {item.node}
           </li>
         );

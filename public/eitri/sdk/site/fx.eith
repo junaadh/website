@@ -1,0 +1,9 @@
+// site/fx: one-shot effects. They play once and leave no state behind.
+
+pub fn glitch(ms: i64) -> void              // RGB-split jitter over the page, 50-2000 ms
+pub fn shake(strength: i64) -> void         // 1-10
+pub fn flash() -> void                      // a bright accent flash
+pub fn sparks(slug: string) -> void         // a burst from a project card, "" for the hero
+pub fn scan() -> void                       // a scan line sweeps down the screen
+pub fn decode() -> void                     // headings decode from noise again
+pub fn typeout(text: string) -> void        // type a line into the hero, under the intro

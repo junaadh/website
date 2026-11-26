@@ -3,6 +3,7 @@
 import { type Eitri, type Env, loadEitri, type ProjectData } from "./eitri";
 
 export const SCRIPT_KEY = "eitri.script";
+export const MUTE_KEY = "eitri.mute";
 export const VISITS_KEY = "eitri.visits";
 const WASM_URL = "/eitri/eitri.wasm";
 
@@ -23,6 +24,7 @@ const maldives = new Intl.DateTimeFormat("en-US", {
   timeZone: "Indian/Maldives",
   hour: "numeric",
   minute: "numeric",
+  second: "numeric",
   weekday: "short",
   hourCycle: "h23",
 });
@@ -33,6 +35,7 @@ export function buildEnv(visits: number, at: Date = new Date()): Env {
   return {
     hour: Number(parts.hour) % 24,
     minute: Number(parts.minute),
+    second: Number(parts.second),
     weekday: Math.max(0, WEEKDAYS.indexOf(parts.weekday ?? "")),
     visits,
   };
@@ -56,6 +59,9 @@ export const readVisits = () =>
   }, 0);
 export const writeVisits = (n: number) =>
   safe(() => localStorage.setItem(VISITS_KEY, String(n)), undefined);
+export const loadMuted = () => safe(() => localStorage.getItem(MUTE_KEY) === "1", false);
+export const saveMuted = (on: boolean) =>
+  safe(() => localStorage.setItem(MUTE_KEY, on ? "1" : "0"), undefined);
 export const clearSaved = () =>
   safe(() => {
     localStorage.removeItem(SCRIPT_KEY);

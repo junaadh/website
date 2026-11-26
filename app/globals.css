@@ -196,12 +196,318 @@ html[data-mono="on"] body {
     0 0 28px -6px oklch(0.86 0.15 var(--hue) / 0.5);
 }
 
+/* ── Syntax highlighting (tree-sitter-eitri captures, see lib/eitri/highlight.ts) ── */
+.tk-kw {
+  color: var(--color-signal);
+}
+.tk-ctl {
+  color: var(--color-signal);
+  font-weight: 600;
+}
+.tk-fn {
+  color: oklch(0.92 0.09 calc(var(--hue) + 25));
+}
+.tk-ty {
+  color: var(--color-ok);
+}
+.tk-tyb {
+  color: oklch(0.78 0.13 150);
+}
+.tk-variant,
+.tk-ctor {
+  color: oklch(0.86 0.13 calc(var(--hue) + 60));
+}
+.tk-param {
+  color: var(--color-ink-2);
+  font-style: italic;
+}
+.tk-member {
+  color: oklch(0.88 0.06 var(--hue));
+}
+.tk-const,
+.tk-num {
+  color: oklch(0.84 0.14 calc(var(--hue) + 150));
+}
+.tk-str {
+  color: var(--color-warn);
+}
+.tk-esc {
+  color: oklch(0.92 0.14 60);
+}
+.tk-cm {
+  color: var(--color-ink-3);
+  font-style: italic;
+}
+.tk-op {
+  color: var(--color-ink-2);
+}
+.tk-punct {
+  color: var(--color-ink-3);
+}
+.tk-attr {
+  color: oklch(0.8 0.12 calc(var(--hue) - 70));
+}
+.tk-ns {
+  color: oklch(0.78 0.1 150);
+}
+.tk-label {
+  color: var(--color-warn);
+}
+
+/* ── Look knobs: crt, flicker, invert, cursor ── */
+.fx-crt {
+  position: fixed;
+  inset: 0;
+  z-index: 45;
+  pointer-events: none;
+  border-radius: 26px / 20px;
+  background:
+    radial-gradient(ellipse at center, transparent 52%, oklch(0 0 0 / 0.5) 100%),
+    repeating-linear-gradient(transparent 0 2px, oklch(0 0 0 / 0.14) 2px 4px);
+  box-shadow:
+    inset 0 0 110px oklch(0 0 0 / 0.55),
+    inset 0 0 0 2px oklch(0 0 0 / 0.45);
+}
+html[data-crt] :is(main, header, footer) {
+  /* cheap chromatic fringe */
+  text-shadow:
+    0.6px 0 oklch(0.7 0.25 25 / 0.5),
+    -0.6px 0 oklch(0.8 0.15 220 / 0.5);
+}
+.fx-flicker {
+  position: fixed;
+  inset: 0;
+  z-index: 44;
+  pointer-events: none;
+  background: oklch(1 0 0);
+  opacity: 0;
+  animation: flicker 5s steps(1, end) infinite;
+}
+@keyframes flicker {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  7% {
+    opacity: 0.035;
+  }
+  9% {
+    opacity: 0;
+  }
+  41% {
+    opacity: 0.02;
+  }
+  43% {
+    opacity: 0;
+  }
+  72% {
+    opacity: 0.05;
+  }
+  73% {
+    opacity: 0.01;
+  }
+  74% {
+    opacity: 0;
+  }
+}
+
+/* The page inverts; the console, palette and toasts do not. */
+html[data-invert] :is(.backdrop, header, main, footer, [data-weather], [data-banner]) {
+  filter: invert(1) hue-rotate(180deg);
+}
+
+html[data-cursor="crosshair"],
+html[data-cursor="crosshair"] * {
+  cursor: crosshair !important;
+}
+.fx-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 90;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--color-signal);
+  border-radius: 9999px;
+  pointer-events: none;
+  box-shadow: 0 0 14px oklch(0.86 0.15 var(--hue) / 0.4);
+  transform: translate3d(-100px, -100px, 0);
+  transition: border-color 0.2s;
+}
+
+/* ── One-shot effects (components/console/Fx.tsx) ── */
+html[data-glitch] :is(main, header, footer) {
+  animation: glitch var(--fx-ms, 400ms) steps(1, end) 1;
+}
+@keyframes glitch {
+  0%,
+  100% {
+    transform: none;
+    filter: none;
+  }
+  12% {
+    transform: translate(-3px, 1px);
+    filter: drop-shadow(3px 0 oklch(0.65 0.28 25 / 0.8))
+      drop-shadow(-3px 0 oklch(0.8 0.15 210 / 0.8));
+  }
+  27% {
+    transform: translate(4px, -1px) skewX(1.5deg);
+    filter: drop-shadow(-4px 0 oklch(0.65 0.28 25 / 0.8))
+      drop-shadow(4px 0 oklch(0.8 0.15 210 / 0.8));
+  }
+  41% {
+    transform: translate(-2px, 2px);
+    filter: none;
+  }
+  58% {
+    transform: translate(5px, 0) skewX(-2deg);
+    filter: drop-shadow(2px 0 oklch(0.65 0.28 25 / 0.8))
+      drop-shadow(-2px 0 oklch(0.8 0.15 210 / 0.8));
+  }
+  76% {
+    transform: translate(-1px, -1px);
+    filter: none;
+  }
+}
+.fx-slice {
+  animation: slice 0.12s steps(2, end) infinite;
+  backdrop-filter: hue-rotate(110deg) saturate(3);
+  background: oklch(0.86 0.15 var(--hue) / 0.08);
+}
+@keyframes slice {
+  0% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(var(--dx, 12px));
+  }
+  100% {
+    transform: translateX(calc(var(--dx, 12px) * -0.6));
+  }
+}
+html[data-shake] :is(main, header, footer, .backdrop) {
+  animation: shake 0.48s linear 1;
+}
+@keyframes shake {
+  0%,
+  100% {
+    transform: none;
+  }
+  10% {
+    transform: translate(calc(var(--shake, 4) * -1px), calc(var(--shake, 4) * 0.5px));
+  }
+  25% {
+    transform: translate(calc(var(--shake, 4) * 1px), calc(var(--shake, 4) * -0.6px));
+  }
+  40% {
+    transform: translate(calc(var(--shake, 4) * -0.8px), calc(var(--shake, 4) * -0.4px));
+  }
+  60% {
+    transform: translate(calc(var(--shake, 4) * 0.6px), calc(var(--shake, 4) * 0.6px));
+  }
+  80% {
+    transform: translate(calc(var(--shake, 4) * -0.3px), 0);
+  }
+}
+.fx-flash,
+.fx-scan,
+.fx-calm {
+  position: fixed;
+  z-index: 75;
+  pointer-events: none;
+}
+.fx-flash {
+  inset: 0;
+  background: oklch(0.86 0.15 var(--hue));
+  animation: flash 0.55s ease-out forwards;
+}
+@keyframes flash {
+  from {
+    opacity: 0.45;
+  }
+  to {
+    opacity: 0;
+  }
+}
+.fx-scan {
+  inset: 0 0 auto 0;
+  height: 140px;
+  background: linear-gradient(
+    transparent,
+    oklch(0.86 0.15 var(--hue) / 0.16) 85%,
+    var(--color-signal)
+  );
+  box-shadow: 0 6px 28px oklch(0.86 0.15 var(--hue) / 0.45);
+  animation: scan 1s ease-in forwards;
+}
+@keyframes scan {
+  from {
+    transform: translateY(-140px);
+  }
+  to {
+    transform: translateY(100vh);
+  }
+}
+/* Reduced motion: every effect collapses into this one soft outline. */
+.fx-calm {
+  border: 1px solid var(--color-signal);
+  box-shadow: inset 0 0 0 1px oklch(0.86 0.15 var(--hue) / 0.25);
+  animation: calm 0.7s ease-out forwards;
+}
+@keyframes calm {
+  from {
+    opacity: 0.8;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* fx.typeout caret */
+.caret::after {
+  content: "▌";
+  margin-left: 2px;
+  animation: blink 1s steps(1) infinite;
+}
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* ui.banner marquee: two copies, shifted by half the track. Stops on hover. */
+.banner-run {
+  animation: marquee 30s linear infinite;
+}
+.banner-track:hover .banner-run {
+  animation-play-state: paused;
+}
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  *:not(.fx-calm),
+  *:not(.fx-calm)::before,
+  *:not(.fx-calm)::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+  .fx-flicker {
+    display: none;
+  }
+  .banner-run {
+    animation: none;
+    max-width: 100%;
+  }
+  .banner-run > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .banner-copy {
+    display: none;
   }
 }
